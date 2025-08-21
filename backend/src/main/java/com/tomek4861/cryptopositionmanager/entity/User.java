@@ -3,6 +3,7 @@ package com.tomek4861.cryptopositionmanager.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class User {
     private String email;
 
     @Column(name = "risk_percentage")
-    private float riskPercent;
+    private BigDecimal riskPercent;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "api_key_id", referencedColumnName = "id")

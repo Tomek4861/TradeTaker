@@ -41,7 +41,7 @@ public class Position {
 
 
     @Column(name = "move_sl", nullable = false)
-    private boolean moveSL;
+    private boolean isMoveStopLoss;
 
     @Column(name = "filled_at")
     private LocalDateTime filledAt;
@@ -73,7 +73,7 @@ public class Position {
     private BigDecimal paidCommission;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "position", nullable = false)
+    @JoinColumn(name = "opening_order_id", nullable = false)
     private Order openingOrder;
 
 
