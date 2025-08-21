@@ -16,7 +16,7 @@ public class ApiKey {
     @Column(name = "key", nullable = false)
     private String key;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @OneToOne(mappedBy = "apiKey")

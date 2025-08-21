@@ -2,7 +2,6 @@ package com.tomek4861.cryptopositionmanager.entity;
 
 
 import jakarta.persistence.*;
-import jdk.jfr.Name;
 
 import java.util.List;
 
@@ -19,10 +18,10 @@ public class User {
     private String password;
 
 
-    @Column(name = "username", unique = true)
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "risk_percentage")
