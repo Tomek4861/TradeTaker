@@ -43,7 +43,7 @@ public class Order {
     private BigDecimal initialStopLossPrice;
 
     @Column(name = "move_stop_loss")
-    private boolean moveStopLoss;
+    private boolean isMoveStopLoss;
 
 
 }

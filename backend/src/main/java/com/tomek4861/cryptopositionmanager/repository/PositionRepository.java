@@ -8,10 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PositionRepository extends JpaRepository<List, Integer> {
+public interface PositionRepository extends JpaRepository<Position, Integer> {
 
     List<Position> findByUser(User user);
-
 
 
 }
