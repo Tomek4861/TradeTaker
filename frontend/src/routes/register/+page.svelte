@@ -9,7 +9,7 @@
 	let email = '';
 	let password = '';
 	let repeatedPassword = '';
-	let userID;
+	let username = '';
 
 	async function handleRegister(event) {
 		event.preventDefault();
@@ -21,9 +21,9 @@
 
 		const url = `${API_BASE_URL}/auth/register/`;
 		const payload = {
-			email: email,
-			password: password,
-			password2: repeatedPassword
+			username,
+			email,
+			password,
 		};
 
 		try {
@@ -41,7 +41,6 @@
 			}
 
 			const data = await response.json();
-			userID = data.user_id;
 			email = '';
 			password = '';
 			repeatedPassword = '';
@@ -65,6 +64,7 @@
 		event.preventDefault();
 		window.location.href = `${API_BE_BASE_URL}/accounts/google/login/`;
 	}
+
 </script>
 <div class="page-wrapper flex items-center flex-col ">
 	<div
@@ -79,6 +79,13 @@
 					placeholder="Email"
 					required
 					type="email"
+				/>
+				<input
+					bind:value={username}
+					class="bg-zinc-800 rounded-xl px-4 py-3 w-full"
+					placeholder="Username"
+					required
+					type="text"
 				/>
 				<input
 					bind:value={password}

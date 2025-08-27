@@ -1,9 +1,9 @@
 <script>
 	import { API_BASE_URL, API_BE_BASE_URL } from '$lib/config.js';
-	import { showSuccessToast, showErrorToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
 	import { csrfToken } from '$lib/stores.js';
-	import  { getCookie } from '$lib/utils.js';
+	import { getCookie } from '$lib/utils.js';
 
 	let isSubmitting = false;
 	let email = '';
