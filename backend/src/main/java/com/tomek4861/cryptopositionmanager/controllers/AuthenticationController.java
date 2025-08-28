@@ -10,10 +10,7 @@ import com.tomek4861.cryptopositionmanager.service.AuthenticationService;
 import com.tomek4861.cryptopositionmanager.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RequiredArgsConstructor
@@ -28,11 +25,10 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         String token = authService.login(loginRequest);
         var response = new LoginResponse(true, token);
-
         return ResponseEntity.ok(response);
 
-
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
@@ -42,6 +38,12 @@ public class AuthenticationController {
 
         var response = new RegisterResponse(true, token);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/isAuthenticated")
+    public ResponseEntity<Void> isAuthenticated(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        return ResponseEntity.ok().build();
     }
 
 

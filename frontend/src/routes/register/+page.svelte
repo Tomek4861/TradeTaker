@@ -19,7 +19,7 @@
 		}
 		isSubmitting = true;
 
-		const url = `${API_BASE_URL}/auth/register/`;
+		const url = `${API_BASE_URL}/auth/register`;
 		const payload = {
 			username,
 			email,

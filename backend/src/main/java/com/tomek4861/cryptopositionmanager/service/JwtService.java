@@ -86,4 +86,17 @@ public class JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    public boolean validateTokenQuickly(String token) {
+        try {
+            System.out.println("Running quick token validation");
+            // verify token signature and expiration
+            Claims claims = extractAllClaims(token);
+            return !claims.getExpiration().before(new Date());
+
+        } catch (Exception e) {
+            return false;
+        }
+
+    }
 }
