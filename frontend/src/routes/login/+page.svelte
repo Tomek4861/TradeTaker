@@ -2,8 +2,8 @@
 	import { API_BASE_URL, API_BE_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
-	import { csrfToken } from '$lib/stores.js';
-	import { getCookie } from '$lib/utils.js';
+	import jwt from '../../stores/authStore.js';
+
 
 	let isSubmitting = false;
 	let email = '';
@@ -13,7 +13,7 @@
 		event.preventDefault();
 		isSubmitting = true;
 
-		const url = `${API_BASE_URL}/auth/login/`;
+		const url = `${API_BASE_URL}/auth/login`;
 		const payload = { email, password };
 
 		try {
@@ -33,7 +33,9 @@
 			const data = await response.json();
 			email = '';
 			password = '';
-			csrfToken.set(getCookie('csrftoken'));
+
+			jwt.set(data['accessToken']);
+
 			showSuccessToast('Successfully logged in!');
 			setTimeout(() => {
 				goto('/trade');
@@ -47,7 +49,7 @@
 
 	function handleGoogleLogin(event) {
 		event.preventDefault();
-		window.location.href = `${API_BE_BASE_URL}/accounts/google/login/`;
+		window.location.href = `${API_BE_BASE_URL}/accounts/google/login`;
 	}
 </script>
 

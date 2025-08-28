@@ -28,10 +28,11 @@ export function showSuccessToast(msg, duration = BASE_OPTIONS.duration) {
 		}
 	});
 }
-	export function showNormalToast(msg, duration = BASE_OPTIONS.duration) {
+
+export function showNormalToast(msg, duration = BASE_OPTIONS.duration) {
 	toast.push(msg, {
 		...BASE_OPTIONS,
-		duration,
+		duration
 		// theme: {
 		// 	'--toastColor': 'mintcream',
 		// 	'--toastBackground': 'rgba(72,187,120,0.9)',

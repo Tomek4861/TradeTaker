@@ -26,7 +26,6 @@ public class AuthenticationController {
         String token = authService.login(loginRequest);
         var response = new LoginResponse(true, token);
         return ResponseEntity.ok(response);
-
     }
 
 
@@ -40,7 +39,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/isAuthenticated")
+    @GetMapping("/status")
     public ResponseEntity<Void> isAuthenticated(@RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         return ResponseEntity.ok().build();

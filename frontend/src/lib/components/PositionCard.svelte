@@ -4,8 +4,8 @@
 	import { cubicOut } from 'svelte/easing';
 	import { createEventDispatcher } from 'svelte';
 	import { API_BASE_URL } from '$lib/config.js';
-	import { showSuccessToast, showErrorToast } from '$lib/toasts.js';
-	import { csrfToken } from '$lib/stores.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
+	import { getAuthHeader } from '$lib/utils.js';
 
 
 	export let position;
@@ -33,7 +33,7 @@
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'X-CSRFToken': $csrfToken
+						...getAuthHeader()
 					},
 					credentials: 'include',
 					body: JSON.stringify({ tool: position.ticker })

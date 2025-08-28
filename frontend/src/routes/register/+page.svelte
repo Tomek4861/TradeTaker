@@ -1,9 +1,8 @@
 <script>
 	import { API_BASE_URL, API_BE_BASE_URL } from '$lib/config.js';
-	import { showSuccessToast, showErrorToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
-	import { csrfToken } from '$lib/stores.js';
-	import  { getCookie } from '$lib/utils.js';
+	import jwt from '../../stores/authStore.js';
 
 	let isSubmitting = false;
 	let email = '';
@@ -23,14 +22,14 @@
 		const payload = {
 			username,
 			email,
-			password,
+			password
 		};
 
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload),
+				body: JSON.stringify(payload)
 			});
 
 			if (!response.ok) {
@@ -45,9 +44,9 @@
 			password = '';
 			repeatedPassword = '';
 
-			csrfToken.set(getCookie('csrftoken'));
+			jwt.set(data['accessToken']);
 
-			showSuccessToast("Successfully registered!");
+			showSuccessToast('Successfully registered!');
 
 			setTimeout(() => {
 				goto('/settings');
@@ -62,7 +61,7 @@
 
 	function handleGoogleRegistration(event) {
 		event.preventDefault();
-		window.location.href = `${API_BE_BASE_URL}/accounts/google/login/`;
+		window.location.href = `${API_BE_BASE_URL}/accounts/google/login`;
 	}
 
 </script>

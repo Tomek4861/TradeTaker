@@ -18,32 +18,30 @@
 	$: isMobile = screenWidth < 768;
 
 	onMount(() => {
-		async function loadInitialData() {
-			isLoading = true;
-			[positions, pendingPositions] = await Promise.all([
-				getCurrentPositions(),
-				getPendingPositions()
-			]);
-			isLoading = false;
-		}
+			async function loadInitialData() {
+				isLoading = true;
+				[positions, pendingPositions] = await Promise.all([
+					getCurrentPositions(),
+					getPendingPositions()
+				]);
+				isLoading = false;
+			}
 
-		loadInitialData();
+			loadInitialData();
 
-		screenWidth = window.innerWidth;
-		window.addEventListener('resize', () => {
 			screenWidth = window.innerWidth;
-		});
+			window.addEventListener('resize', () => {
+				screenWidth = window.innerWidth;
+			});
 
-		intervalId = setInterval(async () => {
-			positions = await getCurrentPositions();
-		}, 5000);
-	}
-
-	)
+			intervalId = setInterval(async () => {
+				positions = await getCurrentPositions();
+			}, 5000);
+		}
+	);
 	onDestroy(() => {
 		clearInterval(intervalId);
 	});
-
 
 
 	async function getCurrentPositions() {
@@ -83,6 +81,7 @@
 			return [];
 		}
 	}
+
 	async function handlePendingCancel() {
 		pendingPositions = await getPendingPositions();
 	}

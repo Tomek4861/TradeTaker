@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
 
     private Boolean success;
-    private String token;
+    private String accessToken;
 
 }

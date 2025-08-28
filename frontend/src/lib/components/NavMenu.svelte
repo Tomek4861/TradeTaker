@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Motion } from 'svelte-motion';
 	import { API_BASE_URL } from '$lib/config';
-	import { csrfToken } from '$lib/stores';
+	import { getAuthHeader } from '$lib/utils';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts';
 
 	export let user = null;
@@ -31,7 +31,7 @@
 			const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
 				method: 'POST',
 				headers: {
-					'X-CSRFToken': $csrfToken
+					...getAuthHeader()
 				},
 				credentials: 'include'
 			});

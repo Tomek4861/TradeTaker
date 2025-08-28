@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
 	import { API_BASE_URL } from '$lib/config.js';
 
 	let monthlyData = {};
@@ -41,7 +40,7 @@
 			monthlyData = parsedData;
 
 		} catch (error) {
-			console.error("Error Downloading data:", error);
+			console.error('Error Downloading data:', error);
 			monthlyData = {};
 		} finally {
 			isLoading = false;
@@ -74,17 +73,31 @@
 		const paddingDays = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
 		const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-		for (let i = 0; i < paddingDays; i++) { grid.push(null); }
-		for (let i = 1; i <= daysInMonth; i++) { grid.push(new Date(currentYear, currentMonth, i)); }
+		for (let i = 0; i < paddingDays; i++) {
+			grid.push(null);
+		}
+		for (let i = 1; i <= daysInMonth; i++) {
+			grid.push(new Date(currentYear, currentMonth, i));
+		}
 		return grid;
 	})();
 
 	function goToPreviousMonth() {
-		if (currentMonth === 0) { currentMonth = 11; currentYear--; } else { currentMonth--; }
+		if (currentMonth === 0) {
+			currentMonth = 11;
+			currentYear--;
+		} else {
+			currentMonth--;
+		}
 	}
 
 	function goToNextMonth() {
-		if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth++; }
+		if (currentMonth === 11) {
+			currentMonth = 0;
+			currentYear++;
+		} else {
+			currentMonth++;
+		}
 	}
 
 	function toISODateString(date) {
@@ -97,7 +110,9 @@
 <div class="bg-zinc-900 text-white p-2 md:p-6 rounded-2xl max-w-full md:max-w-lg mx-auto shadow-lg">
 
 	<header class="flex items-center justify-between mb-4 md:mb-6">
-		<button on:click={goToPreviousMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading}>&lt;</button>
+		<button on:click={goToPreviousMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors"
+						disabled={isLoading}>&lt;
+		</button>
 		<div class="font-bold text-lg md:text-2xl text-center w-48">
 			{#if isLoading}
 				<span class="text-zinc-500 animate-pulse">Loading...</span>
@@ -105,7 +120,9 @@
 				{enMonths[currentMonth]} {currentYear}
 			{/if}
 		</div>
-		<button on:click={goToNextMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading}>&gt;</button>
+		<button on:click={goToNextMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading}>
+			&gt;
+		</button>
 	</header>
 
 	<div class="relative">

@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { API_BASE_URL } from '$lib/config.js';
-	import { showSuccessToast, showErrorToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { csrfToken } from '$lib/stores.js';
 
 	let accounts = [];
@@ -219,8 +219,8 @@
 									<div class="flex items-center justify-center gap-2 flex-wrap">
 										{#if account.isMain}
 											<span class="px-3 py-2 text-xs font-bold text-green-300 bg-green-900/50 rounded-full">Main</span>
-<!--											<div class="flex items-center bg-zinc-700 rounded-full px-3 py-1">-->
-<!--											</div>-->
+											<!--											<div class="flex items-center bg-zinc-700 rounded-full px-3 py-1">-->
+											<!--											</div>-->
 										{:else}
 											<button type="button" on:click={() => setMainAccount(account.id)}
 															class="text-xs px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-full transition-colors">Set

@@ -5,7 +5,7 @@
 	import { API_BASE_URL } from '$lib/config.js';
 	import { csrfToken } from '$lib/stores.js';
 	import { goto } from '$app/navigation';
-	import { showSuccessToast, showErrorToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
 
 	let items = [];
@@ -59,7 +59,7 @@
 				mainAccName = '';
 				throw new Error('Main account is not set');
 			}
-			return mainAccName
+			return mainAccName;
 
 
 		} catch (error) {
@@ -68,6 +68,7 @@
 			console.log('Failed to get main account', error);
 		}
 	}
+
 	async function loadAccountDetails() {
 		try {
 			const response = await fetch(`${API_BASE_URL}/account/details/`, {
@@ -140,9 +141,7 @@
 	}
 
 
-
 	$: isLong = entryPrice && stopLoss ? entryPrice > stopLoss : null;
-
 
 
 	function addTakeProfit() {
@@ -170,7 +169,7 @@
 			entry_p: entryPrice,
 			stop_p: stopLoss,
 			take_profits: takeProfits.map(tp => tp.price).filter(p => p > 0),
-			move_stop_after: moveSLToBEIndex +1 || 0,
+			move_stop_after: moveSLToBEIndex + 1 || 0,
 			leverage: leverage,
 			volume: positionSize
 		};
@@ -224,7 +223,7 @@
 			entry_p: entryPrice,
 			stop_p: stopLoss,
 			take_profits: takeProfits.map(tp => tp.price).filter(p => p > 0),
-			move_stop_after: moveSLToBEIndex +1,
+			move_stop_after: moveSLToBEIndex + 1,
 			leverage: leverage,
 			volume: positionSize
 		};
@@ -248,7 +247,7 @@
 			showSuccessToast('Position placed successfully!');
 
 			setTimeout(async () => {
-				await goto("/positions");
+				await goto('/positions');
 			}, 1000);
 		} catch (error) {
 			showErrorToast(error.message);
@@ -261,7 +260,6 @@
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(processPositionData, 500);
 	}
-
 
 
 	onMount(async () => {
