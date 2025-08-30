@@ -3,25 +3,27 @@ import { NON_PROXY_API_BASE_URL } from '$lib/config.js';
 export const handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
-	const sessionId = event.cookies.get('sessionid');
-	// get all cookies
-	// console.log("All cookies:", event.cookies.getAll());
-	console.log('Session ID from cookie:', sessionId);
+	const authHeader = event.request.headers.get('authorization');
+	console.log('Auth Header:', authHeader);
 
-	if (sessionId) {
+
+	if (authHeader) {
 		try {
-			//TODO; change the URL when fixed
 			const response = await event.fetch(`${NON_PROXY_API_BASE_URL}/auth/status`, {
 				headers: {
-					Cookie: `sessionid=${sessionId}`
+					'Content-Type': 'application/json',
+					"authorization": authHeader
+
+
 				}
 			});
 
 			console.log('API response status:', response.status);
 
 			if (response.ok) {
-				event.locals.user = await response.json();
-				console.log('User set in locals:', event.locals.user);
+				// event.locals.user = await response.json();
+				// console.log('User set in locals:', event.locals.user);
+				console.log("Response OK but not setting user for now.");
 			} else {
 				console.log('API returned non-ok status, clearing user.');
 				event.locals.user = null;

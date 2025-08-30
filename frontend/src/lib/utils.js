@@ -1,7 +1,6 @@
 import { get } from 'svelte/store';
 import jwt from '../stores/authStore.js';
 
-
 export function getAuthHeader() {
 	const token = get(jwt);
 
@@ -10,6 +9,6 @@ export function getAuthHeader() {
 	}
 
 	return {
-		'Authorization': `Bearer ${token}`
+		Authorization: `Bearer ${token}`
 	};
 }

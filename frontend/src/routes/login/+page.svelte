@@ -6,7 +6,7 @@
 
 
 	let isSubmitting = false;
-	let email = '';
+	let username = '';
 	let password = '';
 
 	async function handleLogin(event) {
@@ -14,14 +14,14 @@
 		isSubmitting = true;
 
 		const url = `${API_BASE_URL}/auth/login`;
-		const payload = { email, password };
+		const payload = { username, password };
 
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				credentials: 'same-origin',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password })
+				body: JSON.stringify({ username, password })
 			});
 
 			if (!response.ok) {
@@ -31,10 +31,11 @@
 			}
 
 			const data = await response.json();
-			email = '';
+			username = '';
 			password = '';
 
 			jwt.set(data['accessToken']);
+			console.log("Set access token " + data['accessToken']);
 
 			showSuccessToast('Successfully logged in!');
 			setTimeout(() => {
@@ -61,11 +62,11 @@
 		<div>
 			<form class="space-y-5 w-auto md:w-96" on:submit={handleLogin}>
 				<input
-					bind:value={email}
+					bind:value={username}
 					class="bg-zinc-800 rounded-xl px-4 py-3 w-full"
-					placeholder="Email"
+					placeholder="Username"
 					required
-					type="email"
+					type="text"
 				/>
 				<input
 					bind:value={password}

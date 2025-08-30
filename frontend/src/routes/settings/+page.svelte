@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import { API_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
-	import { csrfToken } from '$lib/stores.js';
+	import { getAuthHeader } from '$lib/utils.js';
+
 
 	let accounts = [];
 	let isLoading = true;
@@ -59,7 +60,7 @@
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-CSRFToken': $csrfToken
+					...getAuthHeader()
 				},
 				credentials: 'include',
 				body: JSON.stringify({ deposit: deposit })
@@ -107,7 +108,11 @@
 		try {
 			const response = await fetch(`${API_BASE_URL}/accounts/`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'X-CSRFToken': $csrfToken },
+				headers: {
+					'Content-Type': 'application/json',
+
+					...getAuthHeader()
+				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
 			});
@@ -132,7 +137,9 @@
 			const response = await fetch(`${API_BASE_URL}/accounts/${accountName}/`, {
 				method: 'DELETE',
 				credentials: 'include',
-				headers: { 'X-CSRFToken': $csrfToken }
+				headers: {
+					...getAuthHeader()
+				}
 			});
 			if (!response.ok && response.status !== 204) {
 				throw new Error('Failed to delete account.');
@@ -152,7 +159,7 @@
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
-				headers: { 'X-CSRFToken': $csrfToken },
+				headers: { ...getAuthHeader() },
 				credentials: 'include'
 			});
 			if (!response.ok) throw new Error('Failed to set main account.');

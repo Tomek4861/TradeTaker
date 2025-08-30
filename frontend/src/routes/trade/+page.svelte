@@ -3,7 +3,7 @@
 	import Select from 'svelte-select';
 	import TradingViewWidget from '$lib/components/TradingViewWidget.svelte';
 	import { API_BASE_URL } from '$lib/config.js';
-	import { csrfToken } from '$lib/stores.js';
+	import { getAuthHeader } from '$lib/utils.js';
 	import { goto } from '$app/navigation';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
@@ -179,7 +179,7 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-CSRFToken': $csrfToken
+					...getAuthHeader()
 				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
@@ -233,7 +233,7 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-CSRFToken': $csrfToken
+					...getAuthHeader()
 				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
