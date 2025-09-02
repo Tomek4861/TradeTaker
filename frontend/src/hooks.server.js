@@ -1,36 +1,27 @@
-import { NON_PROXY_API_BASE_URL } from '$lib/config.js';
+
+import { API_BE_BASE_URL } from '$lib/config.js';
 
 export const handle = async ({ event, resolve }) => {
+
+	console.log(`\n--- HOOK: ${event.request.method} ${event.url.pathname} ---`);
+
+	const token = event.cookies.get('auth_token');
+	console.log('Cookie token:', token ? `Yes ${token.length}` : 'No');
 	event.locals.user = null;
 
-	const authHeader = event.request.headers.get('authorization');
-	console.log('Auth Header:', authHeader);
-
-
-	if (authHeader) {
+	if (token) {
 		try {
-			const response = await event.fetch(`${NON_PROXY_API_BASE_URL}/auth/status`, {
+			const response = await event.fetch(`${API_BE_BASE_URL}/auth/status`, {
 				headers: {
-					'Content-Type': 'application/json',
-					"authorization": authHeader
-
-
+					'Authorization': `Bearer ${token}`
 				}
 			});
-
-			console.log('API response status:', response.status);
-
+			console.log('BE respone (/auth/status):', response.status, response.statusText);
 			if (response.ok) {
-				// event.locals.user = await response.json();
-				// console.log('User set in locals:', event.locals.user);
-				console.log("Response OK but not setting user for now.");
-			} else {
-				console.log('API returned non-ok status, clearing user.');
-				event.locals.user = null;
+				event.locals.user = await response.text();
 			}
 		} catch (error) {
 			console.error('API error in hooks.server.js:', error);
-			event.locals.user = null;
 		}
 	}
 

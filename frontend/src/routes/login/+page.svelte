@@ -1,8 +1,7 @@
 <script>
-	import { API_BASE_URL, API_BE_BASE_URL } from '$lib/config.js';
+	import { API_BE_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
-	import jwt from '../../stores/authStore.js';
 
 
 	let isSubmitting = false;
@@ -13,8 +12,8 @@
 		event.preventDefault();
 		isSubmitting = true;
 
-		const url = `${API_BASE_URL}/auth/login`;
-		const payload = { username, password };
+		// const url = `${API_BASE_URL}/auth/login`;
+		const url = '/auth/login';
 
 		try {
 			const response = await fetch(url, {
@@ -34,13 +33,12 @@
 			username = '';
 			password = '';
 
-			jwt.set(data['accessToken']);
-			console.log("Set access token " + data['accessToken']);
 
 			showSuccessToast('Successfully logged in!');
 			setTimeout(() => {
 				goto('/trade');
 			}, 100);
+			// window.location.href = "/trade";
 		} catch (error) {
 			showErrorToast(error.message);
 		} finally {

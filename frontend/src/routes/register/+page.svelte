@@ -1,8 +1,7 @@
 <script>
-	import { API_BASE_URL, API_BE_BASE_URL } from '$lib/config.js';
+	import { API_BE_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
-	import jwt from '../../stores/authStore.js';
 
 	let isSubmitting = false;
 	let email = '';
@@ -18,7 +17,7 @@
 		}
 		isSubmitting = true;
 
-		const url = `${API_BASE_URL}/auth/register`;
+		const url = `/auth/register`;
 		const payload = {
 			username,
 			email,
@@ -34,8 +33,7 @@
 
 			if (!response.ok) {
 				const errorData = await response.json();
-				const errorKey = Object.keys(errorData)[0];
-				const errorMessage = errorData[errorKey][0] || 'An unknown registration error occurred.';
+				const errorMessage = errorData['message'] || 'An unknown registration error occurred.';
 				throw new Error(errorMessage);
 			}
 
@@ -44,7 +42,6 @@
 			password = '';
 			repeatedPassword = '';
 
-			jwt.set(data['accessToken']);
 
 			showSuccessToast('Successfully registered!');
 

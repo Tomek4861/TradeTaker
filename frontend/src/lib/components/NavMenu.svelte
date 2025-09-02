@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { Motion } from 'svelte-motion';
-	import { API_BASE_URL } from '$lib/config';
-	import { getAuthHeader } from '$lib/utils';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts';
 
 	export let user = null;
@@ -28,12 +26,11 @@
 		event.preventDefault();
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
+			const response = await fetch('/auth/logout/', {
 				method: 'POST',
 				headers: {
-					...getAuthHeader()
-				},
-				credentials: 'include'
+					'Content-Type': 'application/json'
+				}
 			});
 
 			if (!response.ok) {

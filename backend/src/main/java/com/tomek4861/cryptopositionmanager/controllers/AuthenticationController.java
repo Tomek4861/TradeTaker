@@ -40,9 +40,12 @@ public class AuthenticationController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Void> isAuthenticated(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<String> isAuthenticated(@RequestHeader(value = "Authorization") String authHeader) {
 
-        return ResponseEntity.ok().build();
+        String token = authHeader.substring(7);
+        String username = jwtService.extractUsername(token);
+
+        return ResponseEntity.ok(username);
     }
 
 

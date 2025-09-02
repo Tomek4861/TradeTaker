@@ -2,13 +2,14 @@
 	import '../app.css';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import NavMenu from '$lib/components/NavMenu.svelte';
-	import { onMount } from 'svelte';
+	import userStore from '../stores/authStore.js';
+	import { page } from '$app/stores';
+
 
 	export let data;
 
 
-	onMount(() => {
-	});
+	$: $userStore = $page.data.user;
 
 
 </script>
