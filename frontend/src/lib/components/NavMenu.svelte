@@ -1,12 +1,9 @@
-<script lang="ts">
+<script>
 	import { Motion } from 'svelte-motion';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts';
 
 	export let user = null;
 
-	let screenWidth = 0;
-	let mobileOpen = false;
-	$: isMobile = screenWidth < 768;
 	let left = 0;
 	let width = 0;
 	let opacity = 0;
@@ -22,15 +19,12 @@
 		? [...baseNavs, { name: 'Log out', link: '/logout' }]
 		: [...baseNavs, { name: 'Log in', link: '/login' }];
 
-	async function handleLogout(event: MouseEvent) {
+	async function handleLogout(event) {
 		event.preventDefault();
 
 		try {
 			const response = await fetch('/auth/logout/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				}
+				method: 'POST'
 			});
 
 			if (!response.ok) {
@@ -38,15 +32,13 @@
 			}
 
 			showSuccessToast('Successfully logged out!');
-
 			window.location.href = '/login';
-
 		} catch (error) {
 			showErrorToast(error.message);
 		}
 	}
 
-	let positionMotion = (node: HTMLElement) => {
+	let positionMotion = (node) => {
 		let refNode = () => {
 			let mint = node.getBoundingClientRect();
 			left = node.offsetLeft;
@@ -58,78 +50,63 @@
 	};
 </script>
 
-<svelte:window bind:innerWidth={screenWidth} />
+<nav>
+	<div class="md:hidden">
+		<div class="flex justify-between mb-8 border-b border-b-zinc-800 pb-4">
+			<h1 class="text-3xl font-bold">Trading buddy</h1>
 
-{#if isMobile}
-	<div class="flex justify-between mb-8 border-b border-b-zinc-800 pb-4 ">
-		<h1 class="text-3xl font-bold">Trading buddy</h1>
-		<button
-			class="border rounded px-2 py-1"
-			on:click={() => (mobileOpen = !mobileOpen)}
-		>
-			&#9776;
-		</button>
-	</div>
+			<input type="checkbox" id="menu-toggle" class="peer hidden" />
 
-	{#if mobileOpen}
-		<div
-			class="fixed inset-0 bg-black/50 z-40"
-			on:click={() => mobileOpen = false}
-			aria-hidden="true"
-		></div>
-	{/if}
+			<label for="menu-toggle" class="z-50 cursor-pointer border rounded px-2 py-1 text-2xl flex items-center">
+				&#9776;
+			</label>
 
-	<div
-		class="fixed top-0 right-0 h-full w-3/4 max-w-sm bg-zinc-900 transform transition-transform duration-300 z-50 {mobileOpen ? 'translate-x-0' : 'translate-x-full'}"
-	>
-		<div class="flex justify-end p-4">
-			<button class="text-2xl" on:click={() => (mobileOpen = false)}>
-				&times;
-			</button>
+			<label for="menu-toggle" class="fixed inset-0 bg-black/50 z-40 hidden peer-checked:block" aria-hidden="true"></label>
+
+			<div class="fixed top-0 right-0 h-full w-3/4 max-w-sm bg-zinc-900 transform transition-transform duration-300 z-50 translate-x-full peer-checked:translate-x-0">
+				<div class="flex justify-end p-4">
+					<label for="menu-toggle" class="cursor-pointer text-2xl">&times;</label>
+				</div>
+
+				<ul class="flex flex-col space-y-2 px-4">
+					{#each navs as item}
+						<li class="text-center px-4 py-3 border border-zinc-700 rounded-2xl bg-zinc-900 hover:bg-blue-700">
+							{#if item.name === 'Log out'}
+								<button on:click|preventDefault={handleLogout} class="block w-full">{item.name}</button>
+							{:else}
+								<a href={item.link} class="block w-full">{item.name}</a>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</div>
 		</div>
-		<ul class="flex flex-col space-y-2 px-4">
-			{#each navs as item}
-				<li class="px-4 py-3 border border-zinc-700 rounded-2xl bg-zinc-900 hover:bg-blue-700">
-					{#if item.name === 'Log out'}
-						<a href="#" on:click|preventDefault={handleLogout} class="block w-full">{item.name}</a>
-					{:else}
-						<a href={item.link} on:click={() => (mobileOpen = false)} class="block w-full">{item.name}</a>
-					{/if}
-				</li>
-			{/each}
-		</ul>
 	</div>
-{:else }
-	<h1 class="text-4xl font-bold mb-3 text-center">Trading buddy</h1>
-	<div class="py-10 w-full">
-		<ul
-			on:mouseleave={() => {
-        opacity = 0;
-      }}
-			class="relative mx-auto flex w-fit rounded-full border-2 border-zinc-700 bg-zinc-900 p-1"
-		>
-			{#each navs as item, i}
-				<li
-					use:positionMotion
-					class="relative z-10 block cursor-pointer px-3 py-2 text-white md:px-5 md:py-3 md:text-base"
-				>
-					{#if item.name === 'Log out'}
-						<a href="#" class="text-lg" on:click|preventDefault={handleLogout}>{item.name}</a>
-					{:else}
-						<a class="text-lg" href={item.link}>{item.name}</a>
-					{/if}
-				</li>
-			{/each}
-			<Motion
-				animate={{ left, width, opacity }}
-				transition={{ type: "spring", stiffness: 400, damping: 30 }}
-				let:motion
+
+	<div class="hidden md:block">
+		<h1 class="text-4xl font-bold mb-3 text-center">Trading buddy</h1>
+		<div class="py-10 w-full">
+			<ul
+				on:mouseleave={() => { opacity = 0; }}
+				class="relative mx-auto flex w-fit rounded-full border-2 border-zinc-700 bg-zinc-900 p-1"
 			>
-				<li
-					use:motion
-					class="absolute z-0 h-7 rounded-full bg-blue-700 md:h-12"
-				></li>
-			</Motion>
-		</ul>
+				{#each navs as item}
+					<li use:positionMotion class="relative z-10 block cursor-pointer px-3 py-2 text-white md:px-5 md:py-3">
+						{#if item.name === 'Log out'}
+							<button class="text-lg" on:click|preventDefault={handleLogout}>{item.name}</button>
+						{:else}
+							<a class="text-lg" href={item.link}>{item.name}</a>
+						{/if}
+					</li>
+				{/each}
+				<Motion
+					animate={{ left, width, opacity }}
+					transition={{ type: "spring", stiffness: 400, damping: 30 }}
+					let:motion
+				>
+					<li use:motion class="absolute z-0 h-7 rounded-full bg-blue-700 md:h-12"></li>
+				</Motion>
+			</ul>
+		</div>
 	</div>
-{/if}
+</nav>
