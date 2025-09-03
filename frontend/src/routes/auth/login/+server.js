@@ -5,7 +5,6 @@ import { setAuthToken } from '$lib/auth.js';
 export async function POST({ request, cookies, fetch }) {
 	try {
 		const body = await request.json();
-		console.log(body);
 
 		const response = await fetch(`${API_BE_BASE_URL}/auth/login`, {
 			method: 'POST',

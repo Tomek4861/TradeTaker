@@ -11,7 +11,10 @@ export async function POST({ request, cookies, fetch }) {
 			body: JSON.stringify(requestBody)
 		});
 		if (!response.ok) {
-			return json({ success: false, message: 'Invalid registration data' }, { status: response.status });
+			return json(
+				{ success: false, message: 'Invalid registration data' },
+				{ status: response.status }
+			);
 		}
 		const respJson = await response.json();
 		const token = respJson['accessToken'];
@@ -23,6 +26,6 @@ export async function POST({ request, cookies, fetch }) {
 		}
 	} catch (error) {
 		console.error('Registration error:', error);
-		return json({ success: false ,message: 'An internal error occurred' }, { status: 500 });
+		return json({ success: false, message: 'An internal error occurred' }, { status: 500 });
 	}
 }

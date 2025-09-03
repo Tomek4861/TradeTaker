@@ -1,7 +1,15 @@
 <script>
 	import { API_BE_BASE_URL } from '$lib/config.js';
-	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
+	import { showErrorToast, showNormalToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
+	import userStore from '../../stores/authStore.js';
+	import { get } from 'svelte/store';
+
+	$ : if (browser && get(userStore)) {
+		goto('/positions');
+		showNormalToast('You are already logged in.');
+	}
 
 
 	let isSubmitting = false;
@@ -36,9 +44,8 @@
 
 			showSuccessToast('Successfully logged in!');
 			setTimeout(() => {
-				goto('/trade');
+				goto('/positions');
 			}, 100);
-			// window.location.href = "/trade";
 		} catch (error) {
 			showErrorToast(error.message);
 		} finally {
@@ -48,8 +55,9 @@
 
 	function handleGoogleLogin(event) {
 		event.preventDefault();
-		window.location.href = `${API_BE_BASE_URL}/accounts/google/login`;
+		window.location.href = `${API_BE_BASE_URL}/api/oauth2/authorization/google`;
 	}
+
 </script>
 
 

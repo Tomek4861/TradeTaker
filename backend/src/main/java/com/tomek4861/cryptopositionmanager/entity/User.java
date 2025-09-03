@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -16,11 +15,17 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
+    //
+    public enum AuthProviderEnum {
+        GOOGLE,
+        LOCAL
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
+
 
     @Column(name = "password", nullable = false)
     private String password;
@@ -31,6 +36,10 @@ public class User implements UserDetails {
 
     @Column(name = "email", unique = true, nullable = false)
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    private AuthProviderEnum authProviderEnum = AuthProviderEnum.LOCAL; // default
 
     @Column(name = "risk_percentage")
     private BigDecimal riskPercent;
