@@ -6,10 +6,6 @@
 	import userStore from '../../stores/authStore.js';
 	import { get } from 'svelte/store';
 
-	$ : if (browser && get(userStore)) {
-		goto('/positions');
-		showNormalToast('You are already logged in.');
-	}
 
 
 	let isSubmitting = false;

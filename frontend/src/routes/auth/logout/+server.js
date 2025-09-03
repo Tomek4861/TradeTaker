@@ -7,6 +7,6 @@ export async function POST({ request, cookies, fetch }) {
 		return json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		console.error('Logout error:', error);
-		return json({ success: true, message: 'An internal error occurred' }, { status: 500 });
+		return json({ success: false, message: 'An internal error occurred' }, { status: 500 });
 	}
 }

@@ -20,7 +20,7 @@ export async function POST({ request, cookies, fetch }) {
 		const token = respJson['accessToken'];
 		if (token) {
 			setAuthToken(cookies, token);
-			return json({ success: true });
+			return json({ success: true, message: 'Registration successful' });
 		} else {
 			return json({ success: false, message: 'Token not found in response' }, { status: 500 });
 		}

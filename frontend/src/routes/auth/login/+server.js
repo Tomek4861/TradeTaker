@@ -14,7 +14,7 @@ export async function POST({ request, cookies, fetch }) {
 		console.log('Response ' + response.status);
 
 		if (!response.ok) {
-			return json({ message: 'Invalid login data' }, { status: response.status });
+			return json({ success: false, message: 'Invalid login data' }, { status: response.status });
 		}
 
 		const data = await response.json();
@@ -22,12 +22,12 @@ export async function POST({ request, cookies, fetch }) {
 		if (token) {
 			setAuthToken(cookies, token);
 
-			return json({ success: true });
+			return json({ success: true, message: 'Login successful' });
 		} else {
-			return json({ message: 'Token not found in response' }, { status: 500 });
+			return json({ success: false, message: 'Token not found in response' }, { status: 500 });
 		}
 	} catch (error) {
 		console.error('Login error:', error);
-		return json({ message: 'An internal error occurred' }, { status: 500 });
+		return json({ success: false, message: 'An internal error occurred' }, { status: 500 });
 	}
 }

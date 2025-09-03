@@ -11,6 +11,9 @@ export const load = async ({ locals, url }) => {
 	if (!user && !publicRoutes.includes(url.pathname)) {
 		throw redirect(303, '/login');
 	}
+	if (user && publicRoutes.includes(url.pathname)) {
+		throw redirect(303, '/positions');
+	}
 
 	return {
 		user: user

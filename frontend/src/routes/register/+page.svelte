@@ -6,13 +6,6 @@
 	import userStore from '../../stores/authStore.js';
 	import { browser } from '$app/environment';
 
-
-	$ : if (browser && get(userStore)) {
-		goto('/positions');
-		showNormalToast('You are already logged in.');
-	}
-
-
 	let isSubmitting = false;
 	let email = '';
 	let password = '';
