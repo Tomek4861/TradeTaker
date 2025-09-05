@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-    //
+
     public enum AuthProviderEnum {
         GOOGLE,
         LOCAL
@@ -39,12 +40,12 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
-    private AuthProviderEnum authProviderEnum = AuthProviderEnum.LOCAL; // default
+    private AuthProviderEnum authProviderEnum;
 
     @Column(name = "risk_percentage")
     private BigDecimal riskPercent;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "api_key_id", referencedColumnName = "id")
     private ApiKey apiKey;
 

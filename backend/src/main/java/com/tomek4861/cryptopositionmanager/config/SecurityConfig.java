@@ -24,6 +24,8 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final PasswordEncoder passwordEncoder;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
 
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
@@ -44,14 +46,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-//                        .authorizationEndpoint(authEndpoint -> authEndpoint
-//                                .baseUri("/oauth2/authorization")  // zmiana z /auth/oauth2/authorization
-//                        ).redirectionEndpoint(
-//                                redirectEP -> redirectEP
-//                                        .baseUri("/login/oauth2/code/*")
-//                        )
-                                .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(restAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -72,8 +69,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 
 
 }
