@@ -35,7 +35,7 @@
 
 			showSuccessToast('Successfully logged out!');
 			setTimeout(500, () => {
-				window.location.href = '/login';
+				window.reload();
 			});
 		} catch (error) {
 			showErrorToast(error.message);

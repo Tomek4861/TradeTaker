@@ -1,8 +1,6 @@
-
 import { API_BE_BASE_URL } from '$lib/config.js';
 
 export const handle = async ({ event, resolve }) => {
-
 	console.log(`\n--- HOOK: ${event.request.method} ${event.url.pathname} ---`);
 
 	const token = event.cookies.get('auth_token');
@@ -13,7 +11,7 @@ export const handle = async ({ event, resolve }) => {
 		try {
 			const response = await event.fetch(`${API_BE_BASE_URL}/auth/status`, {
 				headers: {
-					'Authorization': `Bearer ${token}`
+					Authorization: `Bearer ${token}`
 				}
 			});
 			console.log('BE respone (/auth/status):', response.status, response.statusText);

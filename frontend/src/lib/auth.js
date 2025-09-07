@@ -8,3 +8,11 @@ export function setAuthToken(cookies, token) {
 		maxAge: 60 * 60 * 24 * 30 // 30 days
 	});
 }
+
+export function getAuthHeader(cookies) {
+	const token = cookies.get('auth_token');
+	if (token) {
+		return { Authorization: `Bearer ${token}` };
+	}
+	return {};
+}

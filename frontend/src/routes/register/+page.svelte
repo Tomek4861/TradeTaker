@@ -1,10 +1,7 @@
 <script>
 	import { API_BE_BASE_URL } from '$lib/config.js';
-	import { showErrorToast, showNormalToast, showSuccessToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
-	import { get } from 'svelte/store';
-	import userStore from '../../stores/authStore.js';
-	import { browser } from '$app/environment';
 
 	let isSubmitting = false;
 	let email = '';
