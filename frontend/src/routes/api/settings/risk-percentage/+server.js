@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { API_BE_BASE_URL } from '$lib/config.js';
+import { getAuthHeader } from '$lib/auth.js';
 
 const url = `${API_BE_BASE_URL}/settings/risk-percentage`;
 
@@ -9,7 +10,7 @@ export async function POST({ request, cookies, fetch }) {
 
 		const response = await fetch(url, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', ...getAuthHeader(cookies) },
 			body: JSON.stringify(body)
 		});
 		console.log('Response ' + response.status);
@@ -38,10 +39,11 @@ export async function POST({ request, cookies, fetch }) {
 	}
 }
 
-export async function GET({ fetch }) {
+export async function GET({ cookies, fetch }) {
 	try {
 		const response = await fetch(url, {
-			method: 'GET'
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json', ...getAuthHeader(cookies) }
 		});
 		console.log('Response ' + response.status);
 

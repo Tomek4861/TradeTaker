@@ -6,7 +6,7 @@ export const load = async ({ locals, url }) => {
 
 	const user = locals.user;
 
-	const publicRoutes = ['/login', '/register'];
+	const publicRoutes = ['/login', '/register', '/auth/callback'];
 
 	if (!user && !publicRoutes.includes(url.pathname)) {
 		throw redirect(303, '/login');

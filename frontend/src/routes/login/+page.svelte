@@ -12,7 +12,6 @@
 		event.preventDefault();
 		isSubmitting = true;
 
-		// const url = `${API_BASE_URL}/auth/login`;
 		const url = '/auth/login';
 
 		try {
@@ -47,7 +46,7 @@
 
 	function handleGoogleLogin(event) {
 		event.preventDefault();
-		window.location.href = `${API_BE_BASE_URL}/api/oauth2/authorization/google`;
+		window.location.href = `${API_BE_BASE_URL}/oauth2/authorization/google`;
 	}
 
 </script>
