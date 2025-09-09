@@ -10,6 +10,7 @@ import com.tomek4861.cryptopositionmanager.service.AuthenticationService;
 import com.tomek4861.cryptopositionmanager.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -40,11 +41,9 @@ public class AuthenticationController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<String> isAuthenticated(@RequestHeader(value = "Authorization") String authHeader) {
+    public ResponseEntity<String> isAuthenticated(Authentication authentication) {
 
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-
+        String username = authentication.getName();
         return ResponseEntity.ok(username);
     }
 

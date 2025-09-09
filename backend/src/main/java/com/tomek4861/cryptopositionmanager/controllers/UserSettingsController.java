@@ -37,27 +37,22 @@ public class UserSettingsController {
         var resp = userSettingsService.getAllSettings(username);
         return ResponseEntity.ok(resp);
 
-
     }
 
 
     @PostMapping("/apikey")
     public ResponseEntity<StandardResponse> saveApiKey(@RequestBody ApiKeyRequest apiKeyRequest, Authentication authentication) {
-
         String username = authentication.getName();
         userSettingsService.saveApiKey(username, apiKeyRequest);
 
         var resp = new StandardResponse(true);
-
         return ResponseEntity.ok(resp);
 
     }
 
     @GetMapping("/apikey")
     public ResponseEntity<ApiKeyResponse> getApiKey(Authentication authentication) {
-
         String username = authentication.getName();
-
         ApiKey apiKey = userSettingsService.getApiKey(username);
 
         var resp = new ApiKeyResponse(apiKey.getKey());
@@ -77,7 +72,6 @@ public class UserSettingsController {
     public ResponseEntity<BigDecimal> getRisk(Authentication authentication) {
 
         String username = authentication.getName();
-
         return ResponseEntity.ok(userSettingsService.getRiskPercentage(username));
     }
 

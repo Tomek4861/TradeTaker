@@ -5,7 +5,6 @@
 	import { createEventDispatcher } from 'svelte';
 	import { API_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
-	import { getAuthHeader } from '$lib/utils.js';
 
 
 	export let position;
@@ -32,8 +31,7 @@
 				{
 					method: 'POST',
 					headers: {
-						'Content-Type': 'application/json',
-						...getAuthHeader()
+						'Content-Type': 'application/json'
 					},
 					credentials: 'include',
 					body: JSON.stringify({ tool: position.ticker })
