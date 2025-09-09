@@ -23,7 +23,7 @@ public class UserSettingsService {
     @Transactional
     public void saveApiKey(String username, ApiKeyRequest apiKeyRequest) {
 
-        // todo:  keep the key stored hashed
+        // todo:  keep the key stored encrypted
 
         User user = findUserByUsername(username);
 

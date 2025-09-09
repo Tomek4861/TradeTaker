@@ -11,11 +11,13 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +35,11 @@ public class BybitService {
 
     }
 
+    @Cacheable("perpetualTickers")
     public Object getAllPerpetualTickers() {
         BybitApiMarketRestClient client = bybitApiClientFactory.newMarketDataRestClient();
-        List<InstrumentEntry> lineanInstruments = getInstrumentsForCategory(client, CategoryType.LINEAR);
 
-        return lineanInstruments;
+        return getInstrumentsForCategory(client, CategoryType.LINEAR);
     }
 
     public List<InstrumentEntry> getInstrumentsForCategory(BybitApiMarketRestClient client, CategoryType category) {
@@ -45,7 +47,7 @@ public class BybitService {
 
         MarketDataRequest request = MarketDataRequest.builder()
                 .category(category)
-                .limit(200)
+                .limit(1000)
                 .build();
         Object rawResponse = client.getInstrumentsInfo(request);
         TypeReference<GenericResponse<InstrumentInfoResult>> typeRef = new TypeReference<>() {
@@ -53,7 +55,17 @@ public class BybitService {
         GenericResponse<InstrumentInfoResult> response = objectMapper.convertValue(rawResponse, typeRef);
 
         if (response != null && response.getResult() != null && response.getResult().getInstrumentEntries() != null) {
-            return response.getResult().getInstrumentEntries();
+            List<InstrumentEntry> instrumentEntries = response.getResult().getInstrumentEntries();
+
+            List<InstrumentEntry> filteredEntries = instrumentEntries.stream()
+                    .filter(
+                            elem -> "LinearPerpetual".equals(elem.getContractType()) && elem.getSymbol().endsWith("USDT")
+                    )
+                    .toList();
+
+            System.out.println("size arr " + filteredEntries.size());
+
+            return filteredEntries;
         } else {
             return Collections.emptyList();
         }
