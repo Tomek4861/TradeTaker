@@ -32,7 +32,7 @@ public class UserBybitService {
                 .build();
 
         Object rawResp = accountClient.getWalletBalance(request);
-        TypeReference<GenericResponse<WalletBalanceDTO.Result>> typeRef = new TypeReference() {
+        TypeReference<GenericResponse<WalletBalanceDTO.Result>> typeRef = new TypeReference<>() {
         };
         GenericResponse<WalletBalanceDTO.Result> response = objectMapper.convertValue(rawResp, typeRef);
         if (response != null && response.getResult() != null && response.getResult().getList() != null && !response.getResult().getList().isEmpty()) {

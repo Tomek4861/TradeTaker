@@ -55,6 +55,19 @@
 		}
 	}
 
+	async function loadAccountBalance() {
+	  try {
+	    const response = await fetch('/api/trade/balance', {
+	      headers: { 'Content-Type': 'application/json' }
+	    });
+	    const result = await response.json();
+
+	    accountBalance =  parseFloat(result.balance);
+	  } catch (error) {
+	    console.error('Error fetching balance:', error);
+	  }
+	}
+
 
 	async function loadTradableTickers() {
 		try {
@@ -213,6 +226,7 @@
 		items = await loadTradableTickers();
 		selectedTicker = items.at(0);
 		await loadRiskPercentage();
+		await loadAccountBalance();
 		screenWidth = window.innerWidth;
 		window.addEventListener('resize', () => {
 			screenWidth = window.innerWidth;
