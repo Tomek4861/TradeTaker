@@ -10,18 +10,18 @@ import com.bybit.api.client.restApi.BybitApiMarketRestClient;
 import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
-public class BybitService {
+public class PublicBybitService {
 
     private final BybitApiClientFactory bybitApiClientFactory;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -42,7 +42,7 @@ public class BybitService {
         return getInstrumentsForCategory(client, CategoryType.LINEAR);
     }
 
-    public List<InstrumentEntry> getInstrumentsForCategory(BybitApiMarketRestClient client, CategoryType category) {
+    public List<InstrumentEntryDTO> getInstrumentsForCategory(BybitApiMarketRestClient client, CategoryType category) {
 
 
         MarketDataRequest request = MarketDataRequest.builder()
@@ -57,9 +57,12 @@ public class BybitService {
         if (response != null && response.getResult() != null && response.getResult().getInstrumentEntries() != null) {
             List<InstrumentEntry> instrumentEntries = response.getResult().getInstrumentEntries();
 
-            List<InstrumentEntry> filteredEntries = instrumentEntries.stream()
+            List<InstrumentEntryDTO> filteredEntries = instrumentEntries.stream()
                     .filter(
                             elem -> "LinearPerpetual".equals(elem.getContractType()) && elem.getSymbol().endsWith("USDT")
+                    )
+                    .map(
+                            elem -> new InstrumentEntryDTO(elem, "BYBIT")
                     )
                     .toList();
 

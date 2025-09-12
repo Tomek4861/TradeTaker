@@ -3,7 +3,6 @@
 	import Select from 'svelte-select';
 	import TradingViewWidget from '$lib/components/TradingViewWidget.svelte';
 	import { API_BASE_URL } from '$lib/config.js';
-	import { getAuthHeader } from '$lib/utils.js';
 	import { goto } from '$app/navigation';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
@@ -21,7 +20,7 @@
 	let entryPrice = null;
 	let triggerLevel = null;
 	let stopLoss = null;
-	let leverageLimits = { max_long_leverage: 100, max_short_leverage: 100 };
+	let leverageLimits = new Map();
 
 	let takeProfits = [
 		{ price: null }
@@ -40,74 +39,42 @@
 
 	let mainAcc = null;
 
-	async function getMainAccount() {
+
+	async function loadRiskPercentage() {
 		try {
-			const response = await fetch(`${API_BASE_URL}/auth/status/`, {
-				credentials: 'include'
+			const response = await fetch(`/api/settings/risk-percentage/`, {
+				headers: { 'Content-Type': 'application/json' },
 			});
-
-			if (!response.ok) {
-				throw new Error('Could not fetch main account.');
-			}
-
 			const data = await response.json();
 
-			let mainAccName;
-			if (data.current_account !== null) {
-				mainAccName = data.current_account.name;
-			} else {
-				mainAccName = '';
-				throw new Error('Main account is not set');
-			}
-			return mainAccName;
-
-
-		} catch (error) {
-			showErrorToast('Failed to get main account');
-
-			console.log('Failed to get main account', error);
-		}
-	}
-
-	async function loadAccountDetails() {
-		try {
-			const response = await fetch(`${API_BASE_URL}/account/details/`, {
-				credentials: 'include'
-			});
-			if (!response.ok) {
-				throw new Error('Could not fetch account details.');
-			}
-			const data = await response.json();
-
-			accountBalance = parseFloat(data.available_margin).toFixed(2);
-			riskPercent = parseFloat(data.risk_percent);
+			riskPercent = parseFloat(data.riskPercentage);
 
 		} catch (error) {
 			showErrorToast(error.message);
-			console.error('Failed to get account details', error);
+			console.error('Failed to load risk percentage', error);
 		}
 	}
 
 
 	async function loadTradableTickers() {
 		try {
-			const response = await fetch(`${API_BASE_URL}/trading/tools/`, {
-				credentials: 'include'
+			const response = await fetch(`/api/trade/perpetual-tickers`, {
+				headers: { 'Content-Type': 'application/json' },
 			});
 
 
-			if (!response.ok) {
-				throw new Error('Could not fetch tradable tickers.');
-			}
+			const responseJson = await response.json();
+			console.log(responseJson);
+			const responseData = JSON.parse(responseJson['data']);
 
-			const apiTools = await response.json();
+			responseData.forEach(elem => {
+				leverageLimits.set(elem['instrumentEntry']['symbol'], elem['instrumentEntry']['leverageFilter']['maxLeverage']);
+			});
 
-			console.log(apiTools);
-
-			return apiTools.map(tool => ({
-				label: tool.label,
-				value: tool.trading_view_format,
-				exchangeFormat: tool.exchange_format
+			return responseData.map(elem => ({
+				label: elem['instrumentEntry']['symbol'],
+				value: elem['tradingViewFormat'],
+				exchangeFormat: elem['instrumentEntry']['symbol']
 
 			}));
 
@@ -118,27 +85,7 @@
 		}
 	}
 
-	async function fetchLeverageLimits(ticker) {
-		if (!ticker || !ticker.exchangeFormat) return;
-		try {
-			const url = `${API_BASE_URL}/trading/tools/${ticker.exchangeFormat}/leverages`;
-			const response = await fetch(url, { credentials: 'include' });
-			if (!response.ok) throw new Error('Could not fetch leverage limits.');
 
-			leverageLimits = await response.json();
-
-			leverage = leverageLimits.max_long_leverage;
-
-			console.log('Updated leverage limits:', leverageLimits);
-		} catch (error) {
-			showErrorToast(error.message);
-			leverageLimits = { max_long_leverage: 100, max_short_leverage: 100 };
-		}
-	}
-
-	$: if (selectedTicker) {
-		fetchLeverageLimits(selectedTicker);
-	}
 
 
 	$: isLong = entryPrice && stopLoss ? entryPrice > stopLoss : null;
@@ -179,7 +126,7 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					...getAuthHeader()
+					
 				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
@@ -233,7 +180,7 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					...getAuthHeader()
+					
 				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
@@ -265,8 +212,7 @@
 	onMount(async () => {
 		items = await loadTradableTickers();
 		selectedTicker = items.at(0);
-		mainAcc = await getMainAccount();
-		if (mainAcc) await loadAccountDetails();
+		await loadRiskPercentage();
 		screenWidth = window.innerWidth;
 		window.addEventListener('resize', () => {
 			screenWidth = window.innerWidth;

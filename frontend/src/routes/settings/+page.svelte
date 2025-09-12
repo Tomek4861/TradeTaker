@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
-	const secretPlaceholder = '******';
+	const secretPlaceholder = '*'.repeat(40);
 
 	let apiKey = '';
 	let secretKey = '';
@@ -93,7 +93,6 @@
 		<form class="flex flex-col h-full" on:submit={handleSaveAllSettings}>
 			<div class="flex-grow">
 				<div class="flex justify-between items-center mb-4">
-					<h3 class="text-2xl font-semibold">Accounts</h3>
 				</div>
 
 				<div class="space-y-3 mb-8 min-h-[10rem] relative">
