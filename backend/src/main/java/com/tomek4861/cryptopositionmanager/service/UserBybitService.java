@@ -1,10 +1,15 @@
 package com.tomek4861.cryptopositionmanager.service;
 
 
+import com.bybit.api.client.domain.CategoryType;
 import com.bybit.api.client.domain.GenericResponse;
 import com.bybit.api.client.domain.account.AccountType;
 import com.bybit.api.client.domain.account.request.AccountDataRequest;
+import com.bybit.api.client.domain.position.request.PositionDataRequest;
+import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.bybit.api.client.restApi.BybitApiAccountRestClient;
+import com.bybit.api.client.restApi.BybitApiPositionRestClient;
+import com.bybit.api.client.restApi.BybitApiTradeRestClient;
 import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +49,28 @@ public class UserBybitService {
 
         return Optional.empty();
     }
+
+    public Object getOpenPositions() {
+        BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
+        PositionDataRequest request = PositionDataRequest.builder()
+                .category(CategoryType.LINEAR)
+                .settleCoin("USDT")
+                .build();
+        return positionClient.getPositionInfo(request);
+    }
+
+    public Object getOpenOrders() {
+        BybitApiTradeRestClient tradeClient = this.clientFactory.newTradeRestClient();
+        TradeOrderRequest request = TradeOrderRequest.builder()
+                .category(CategoryType.LINEAR)
+                .settleCoin("USDT")
+                .build();
+        return tradeClient.getOpenOrders(request);
+    }
+
+
+
+
 
 
 }

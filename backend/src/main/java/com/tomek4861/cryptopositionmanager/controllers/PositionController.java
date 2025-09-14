@@ -4,15 +4,13 @@ import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
+import com.tomek4861.cryptopositionmanager.service.UserBybitService;
 import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -48,4 +46,35 @@ public class PositionController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/open")
+    public ResponseEntity<Object> getOpenPositions(Authentication auth) {
+        String username = auth.getName();
+        ApiKey apiKey = userSettingsService.getApiKey(username);
+
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            return ResponseEntity.badRequest().body(new PreviewPositionResponse("API key not set"));
+        }
+        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        Object openPositions = userBybitService.getOpenPositions();
+
+        return ResponseEntity.ok(openPositions);
+
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<Object> getOpenOrders(Authentication auth) {
+        String username = auth.getName();
+        ApiKey apiKey = userSettingsService.getApiKey(username);
+
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            return ResponseEntity.badRequest().body("API key not set");
+        }
+
+        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        Object openOrders = userBybitService.getOpenOrders();
+        return ResponseEntity.ok(openOrders);
+    }
+
+
 }

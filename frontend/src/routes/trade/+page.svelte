@@ -154,7 +154,6 @@
 
 			}
 
-
 		} catch (error) {
 			console.error('Failed to process position data:', error);
 		}
@@ -170,8 +169,8 @@
 		}
 
 		const payload = {
-			tool: selectedTicker.exchangeFormat,
-			trigger_p: triggerLevel,
+			ticker: selectedTicker.exchangeFormat,
+			// trigger_p: triggerLevel,
 			entry_p: entryPrice,
 			stop_p: stopLoss,
 			take_profits: takeProfits.map(tp => tp.price).filter(p => p > 0),
