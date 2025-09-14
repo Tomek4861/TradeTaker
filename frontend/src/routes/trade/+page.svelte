@@ -37,13 +37,11 @@
 	let debounceTimeout;
 	let isSubmitting = false;
 
-	let mainAcc = null;
-
 
 	async function loadRiskPercentage() {
 		try {
 			const response = await fetch(`/api/settings/risk-percentage/`, {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json' }
 			});
 			const data = await response.json();
 
@@ -56,28 +54,28 @@
 	}
 
 	async function loadAccountBalance() {
-	  try {
-	    const response = await fetch('/api/trade/balance', {
-	      headers: { 'Content-Type': 'application/json' }
-	    });
-	    const result = await response.json();
+		try {
+			const response = await fetch('/api/trade/balance', {
+				headers: { 'Content-Type': 'application/json' }
+			});
+			const result = await response.json();
 
-	    accountBalance =  parseFloat(result.balance);
-	  } catch (error) {
-	    console.error('Error fetching balance:', error);
-	  }
+			accountBalance = parseFloat(result.balance);
+		} catch (error) {
+			console.error('Error fetching balance:', error);
+		}
 	}
 
 
 	async function loadTradableTickers() {
 		try {
 			const response = await fetch(`/api/trade/perpetual-tickers`, {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json' }
 			});
 
 
 			const responseJson = await response.json();
-			console.log(responseJson);
+
 			const responseData = JSON.parse(responseJson['data']);
 
 			responseData.forEach(elem => {
@@ -99,9 +97,7 @@
 	}
 
 
-
-
-	$: isLong = entryPrice && stopLoss ? entryPrice > stopLoss : null;
+	$: isLong = entryPrice && stopLoss ? entryPrice > stopLoss : false;
 
 
 	function addTakeProfit() {
@@ -116,51 +112,48 @@
 		}
 	}
 
-	async function processPositionData() {
-		if (!mainAcc || !selectedTicker || !entryPrice || !stopLoss || !leverage) {
+	async function previewPositionInfo() {
+		if (!selectedTicker || !entryPrice || !stopLoss) {
 			return;
 		}
 
 
 		const payload = {
-			account_name: mainAcc,
-			tool: selectedTicker.exchangeFormat,
-			trigger_p: triggerLevel,
-			entry_p: entryPrice,
-			stop_p: stopLoss,
-			take_profits: takeProfits.map(tp => tp.price).filter(p => p > 0),
-			move_stop_after: moveSLToBEIndex + 1 || 0,
-			leverage: leverage,
-			volume: positionSize
+			ticker: selectedTicker.exchangeFormat,
+			isLong: isLong,
+			// trigger_p: triggerLevel,
+			entryPrice: entryPrice,
+			stopLossPrice: stopLoss,
+			takeProfitLevels: takeProfits.map(tp => tp.price).filter(p => p > 0)
+			// move_stop_after: moveSLToBEIndex + 1 || 0,
+			// leverage: leverage,
+			// volume: positionSize
 		};
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/trading/positions/process/`, {
+			const response = await fetch(`/api/positions/preview`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
-					
+					'Content-Type': 'application/json'
+
 				},
-				credentials: 'include',
 				body: JSON.stringify(payload)
 			});
 
-			if (!response.ok) {
-				console.error('API processing error:', await response.json());
-				return;
+			const responseData = await response.json();
+			console.log(responseData);
+
+			if (responseData.success) {
+
+				leverage = parseFloat(responseData.leverage);
+				requiredMargin = parseFloat(responseData["requiredMargin"]);
+				potentialLoss = parseFloat(responseData["potentialLoss"]);
+				potentialProfit = parseFloat(responseData["potentialProfit"]);
+				riskRewardRatio = parseFloat(responseData["riskToRewardRatio"]);
+				positionSize = parseFloat(responseData["positionSize"]);
+
 			}
 
-			const results = await response.json();
-
-			requiredMargin = parseFloat(results.margin);
-			potentialLoss = parseFloat(results.potential_loss);
-			potentialProfit = parseFloat(results.potential_profit);
-
-			if (potentialProfit > 0 && potentialLoss > 0) {
-				riskRewardRatio = potentialProfit / potentialLoss;
-			} else {
-				riskRewardRatio = null;
-			}
 
 		} catch (error) {
 			console.error('Failed to process position data:', error);
@@ -170,14 +163,13 @@
 	async function handleOpenTrade() {
 		isSubmitting = true;
 
-		if (!mainAcc || !selectedTicker || !entryPrice || !stopLoss || !leverage || !takeProfits[0]?.price) {
+		if (!selectedTicker || !entryPrice || !stopLoss || !leverage || !takeProfits[0]?.price) {
 			showErrorToast('Please fill all required fields.');
 			isSubmitting = false;
 			return;
 		}
 
 		const payload = {
-			account_name: mainAcc,
 			tool: selectedTicker.exchangeFormat,
 			trigger_p: triggerLevel,
 			entry_p: entryPrice,
@@ -192,8 +184,8 @@
 			const response = await fetch(`${API_BASE_URL}/trading/positions/place/`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
-					
+					'Content-Type': 'application/json'
+
 				},
 				credentials: 'include',
 				body: JSON.stringify(payload)
@@ -216,9 +208,20 @@
 		}
 	}
 
-	$: if (entryPrice, stopLoss, leverage, positionSize, takeProfits, selectedTicker, mainAcc) {
+	$: previewPositionParams = JSON.stringify({
+		ticker: selectedTicker?.exchangeFormat ?? null,
+		entryPrice,
+		stopLoss,
+		leverage,
+		positionSize,
+		takeProfits
+	});
+
+	$: if (previewPositionParams) {
 		clearTimeout(debounceTimeout);
-		debounceTimeout = setTimeout(processPositionData, 500);
+		if (selectedTicker && entryPrice && stopLoss) {
+			debounceTimeout = setTimeout(previewPositionInfo, 500);
+		}
 	}
 
 
@@ -283,6 +286,7 @@
 					max="100"
 					min="1"
 					step="1"
+					disabled
 					type="number"
 				/>
 				<span class="">x</span>

@@ -4,7 +4,6 @@ import { getAuthHeader } from '$lib/auth.js';
 
 const url = `${API_BE_BASE_URL}/bybit/balance`;
 
-
 export async function GET({ cookies, fetch }) {
 	try {
 		const response = await fetch(url, {

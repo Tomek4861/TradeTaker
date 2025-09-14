@@ -16,7 +16,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -36,11 +38,21 @@ public class PublicBybitService {
     }
 
     @Cacheable("perpetualTickers")
-    public Object getAllPerpetualTickers() {
+    public List<InstrumentEntryDTO> getAllPerpetualTickers() {
         BybitApiMarketRestClient client = bybitApiClientFactory.newMarketDataRestClient();
 
         return getInstrumentsForCategory(client, CategoryType.LINEAR);
     }
+
+
+    @Cacheable(value = "perpetualTickerBySymbol", key = "#symbol")
+    public Optional<InstrumentEntryDTO> getPerpetualTickerBySymbol(String symbol) {
+        List<InstrumentEntryDTO> allTickers = getAllPerpetualTickers();
+
+        return allTickers.stream()
+                .filter(tickerDto -> tickerDto.getInstrumentEntry().getSymbol().equalsIgnoreCase(symbol)).findFirst();
+    }
+
 
     public List<InstrumentEntryDTO> getInstrumentsForCategory(BybitApiMarketRestClient client, CategoryType category) {
 
@@ -61,6 +73,7 @@ public class PublicBybitService {
                     .filter(
                             elem -> "LinearPerpetual".equals(elem.getContractType()) && elem.getSymbol().endsWith("USDT")
                     )
+                    .sorted(Comparator.comparing(InstrumentEntry::getLaunchTime))
                     .map(
                             elem -> new InstrumentEntryDTO(elem, "BYBIT")
                     )

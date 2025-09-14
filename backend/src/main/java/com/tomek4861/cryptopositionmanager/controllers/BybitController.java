@@ -53,9 +53,6 @@ public class BybitController {
         } else {
             return ResponseEntity.internalServerError().body(new BigDecimal("-1"));
         }
-
-
     }
-
 
 }
