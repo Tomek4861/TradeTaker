@@ -2,8 +2,8 @@ package com.tomek4861.cryptopositionmanager.service;
 
 import com.bybit.api.client.domain.market.response.instrumentInfo.LeverageFilter;
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
-import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionRequest;
-import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionResponse;
+import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionRequest;
+import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

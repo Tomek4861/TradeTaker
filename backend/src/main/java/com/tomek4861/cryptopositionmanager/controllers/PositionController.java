@@ -1,7 +1,8 @@
 package com.tomek4861.cryptopositionmanager.controllers;
 
-import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionRequest;
-import com.tomek4861.cryptopositionmanager.dto.position.PreviewPositionResponse;
+import com.tomek4861.cryptopositionmanager.dto.position.open.OpenPositionsResponse;
+import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionRequest;
+import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
@@ -48,15 +49,18 @@ public class PositionController {
     }
 
     @GetMapping("/open")
-    public ResponseEntity<Object> getOpenPositions(Authentication auth) {
+    public ResponseEntity<OpenPositionsResponse> getOpenPositions(Authentication auth) {
         String username = auth.getName();
         ApiKey apiKey = userSettingsService.getApiKey(username);
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body(new PreviewPositionResponse("API key not set"));
+            OpenPositionsResponse errResp = new OpenPositionsResponse();
+            errResp.setSuccess(false);
+            errResp.setErrorMessage("API key not set");
+            return ResponseEntity.badRequest().body(errResp);
         }
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
-        Object openPositions = userBybitService.getOpenPositions();
+        OpenPositionsResponse openPositions = userBybitService.getOpenPositions();
 
         return ResponseEntity.ok(openPositions);
 

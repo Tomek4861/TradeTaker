@@ -1,4 +1,4 @@
-package com.tomek4861.cryptopositionmanager.dto.position;
+package com.tomek4861.cryptopositionmanager.dto.position.preview;
 
 
 import lombok.Data;

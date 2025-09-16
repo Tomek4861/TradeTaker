@@ -14,6 +14,7 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
+import com.tomek4861.cryptopositionmanager.dto.position.open.OpenPositionsResponse;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -50,13 +51,21 @@ public class UserBybitService {
         return Optional.empty();
     }
 
-    public Object getOpenPositions() {
+    public OpenPositionsResponse getOpenPositions() {
         BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
         PositionDataRequest request = PositionDataRequest.builder()
                 .category(CategoryType.LINEAR)
                 .settleCoin("USDT")
                 .build();
-        return positionClient.getPositionInfo(request);
+
+        Object positionInfoRawResp = positionClient.getPositionInfo(request);
+        TypeReference<GenericResponse<OpenPositionsResponse>> typeRef = new TypeReference<>() {
+        };
+        GenericResponse<OpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
+        OpenPositionsResponse result = response.getResult();
+        result.setSuccess(true);
+        return result;
+
     }
 
     public Object getOpenOrders() {
@@ -67,10 +76,6 @@ public class UserBybitService {
                 .build();
         return tradeClient.getOpenOrders(request);
     }
-
-
-
-
 
 
 }
