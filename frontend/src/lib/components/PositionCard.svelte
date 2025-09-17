@@ -63,9 +63,9 @@
 			<div class="w-1/5 text-start">
 				<p
 					class="uppercase border-l-4 px-2.5 mb-1"
-					class:border-l-green-600={position.side === 'long'}
-					class:border-l-red-600={position.side === 'short'}>
-					{position.side}
+					class:border-l-green-600={position.isLong}
+					class:border-l-red-600={!position.isLong}>
+					{position.isLong ? "Long" : "Short"}
 				</p>
 				<p class="text-sm text-zinc-400">Leverage: 50.0x</p>
 			</div>

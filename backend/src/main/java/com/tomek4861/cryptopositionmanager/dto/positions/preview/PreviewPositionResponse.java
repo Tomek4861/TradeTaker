@@ -1,4 +1,4 @@
-package com.tomek4861.cryptopositionmanager.dto.position.preview;
+package com.tomek4861.cryptopositionmanager.dto.positions.preview;
 
 
 import lombok.AllArgsConstructor;

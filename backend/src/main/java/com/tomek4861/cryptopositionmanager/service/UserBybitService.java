@@ -14,7 +14,8 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
-import com.tomek4861.cryptopositionmanager.dto.position.open.OpenPositionsResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -59,6 +60,8 @@ public class UserBybitService {
                 .build();
 
         Object positionInfoRawResp = positionClient.getPositionInfo(request);
+        System.out.println(positionInfoRawResp);
+        System.out.println("positionInfoRawResp");
         TypeReference<GenericResponse<OpenPositionsResponse>> typeRef = new TypeReference<>() {
         };
         GenericResponse<OpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
@@ -68,13 +71,23 @@ public class UserBybitService {
 
     }
 
-    public Object getOpenOrders() {
+    public OpenOrdersResponse getOpenOrders() {
         BybitApiTradeRestClient tradeClient = this.clientFactory.newTradeRestClient();
         TradeOrderRequest request = TradeOrderRequest.builder()
                 .category(CategoryType.LINEAR)
                 .settleCoin("USDT")
                 .build();
-        return tradeClient.getOpenOrders(request);
+        Object openOrdersRawResp = tradeClient.getOpenOrders(request);
+
+        TypeReference<GenericResponse<OpenOrdersResponse>> typeRef = new TypeReference<>() {
+        };
+
+        GenericResponse<OpenOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
+
+        OpenOrdersResponse result = response.getResult();
+        result.setSuccess(true);
+
+        return result;
     }
 
 

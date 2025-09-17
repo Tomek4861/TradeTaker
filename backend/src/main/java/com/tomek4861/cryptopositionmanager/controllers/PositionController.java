@@ -1,8 +1,9 @@
 package com.tomek4861.cryptopositionmanager.controllers;
 
-import com.tomek4861.cryptopositionmanager.dto.position.open.OpenPositionsResponse;
-import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionRequest;
-import com.tomek4861.cryptopositionmanager.dto.position.preview.PreviewPositionResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
+import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
@@ -67,16 +68,19 @@ public class PositionController {
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<Object> getOpenOrders(Authentication auth) {
+    public ResponseEntity<OpenOrdersResponse> getOpenOrders(Authentication auth) {
         String username = auth.getName();
         ApiKey apiKey = userSettingsService.getApiKey(username);
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body("API key not set");
+            OpenOrdersResponse errResp = new OpenOrdersResponse();
+            errResp.setErrorMessage("API key not set");
+            errResp.setSuccess(false);
+            return ResponseEntity.badRequest().body(errResp);
         }
 
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
-        Object openOrders = userBybitService.getOpenOrders();
+        OpenOrdersResponse openOrders = userBybitService.getOpenOrders();
         return ResponseEntity.ok(openOrders);
     }
 
