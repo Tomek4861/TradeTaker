@@ -3,9 +3,11 @@ package com.tomek4861.cryptopositionmanager.service;
 
 import com.bybit.api.client.domain.CategoryType;
 import com.bybit.api.client.domain.GenericResponse;
+import com.bybit.api.client.domain.TradeOrderType;
 import com.bybit.api.client.domain.account.AccountType;
 import com.bybit.api.client.domain.account.request.AccountDataRequest;
 import com.bybit.api.client.domain.position.request.PositionDataRequest;
+import com.bybit.api.client.domain.trade.Side;
 import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.bybit.api.client.restApi.BybitApiAccountRestClient;
 import com.bybit.api.client.restApi.BybitApiPositionRestClient;
@@ -14,6 +16,8 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
+import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
 
@@ -108,6 +112,38 @@ public class UserBybitService {
         String key = "BYBIT|" + position.getTicker() + "|" + position.getPositionIdx() + "|" + sideStr;
         UUID uuid = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
         return uuid.toString();
+    }
+
+    public StandardResponse closePositionByMarket(ClosePositionRequest request) {
+        BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
+        System.out.println(request);
+        System.out.println(request.isLong() ? Side.SELL : Side.BUY);
+
+        TradeOrderRequest closeOrderRequest = TradeOrderRequest.builder()
+                .category(CategoryType.LINEAR)
+                .symbol(request.getTicker())
+                .side(request.isLong() ? Side.SELL : Side.BUY)
+                .orderType(TradeOrderType.MARKET)
+                .qty(request.getSize().toString())
+                .reduceOnly(true)
+                .build();
+        Object rawApiResponse = client.createOrder(closeOrderRequest);
+        System.out.println(rawApiResponse);
+        System.out.println("RAWAPIRESP");
+        TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
+        };
+
+        GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
+        System.out.println(apiResponse);
+        StandardResponse standardResponse;
+        if (apiResponse.getRetMsg().equals("OK")) {
+            standardResponse = new StandardResponse(true);
+        } else {
+            standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
+        }
+
+        return standardResponse;
+
     }
 
 }

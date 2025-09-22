@@ -24,10 +24,25 @@
 
 	async function handleClose() {
 		try {
-			console.log('TBD');
-			dispatch('close', { positionId: position.positionId });
+			const payload = {
+				isLong: position.isLong,
+				ticker: position.ticker,
+				size: position.quantity
+			};
+			const response = await fetch('/api/positions/close', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			const result = await response.json();
+
+			if (!result.success) {
+				showErrorToast(result.message || 'Failed to close position.');
+				return;
+			}
+			showSuccessToast('Position closed successfully!');
 		} catch (err) {
-			showErrorToast(err.message);
+			showErrorToast('Position closing error ' + err.message);
 		}
 	}
 </script>

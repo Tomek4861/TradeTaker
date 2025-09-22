@@ -1,5 +1,7 @@
 package com.tomek4861.cryptopositionmanager.controllers;
 
+import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
@@ -82,6 +84,23 @@ public class PositionController {
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
         OpenOrdersResponse openOrders = userBybitService.getOpenOrders();
         return ResponseEntity.ok(openOrders);
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<StandardResponse> closePosition(Authentication auth, @Valid @RequestBody ClosePositionRequest request) {
+        String username = auth.getName();
+        ApiKey apiKey = userSettingsService.getApiKey(username);
+
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            StandardResponse errResp = new StandardResponse(false, "API key not set");
+            return ResponseEntity.badRequest().body(errResp);
+        }
+
+        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        var resp = userBybitService.closePositionByMarket(request);
+        return ResponseEntity.ok(resp);
+
+
     }
 
 
