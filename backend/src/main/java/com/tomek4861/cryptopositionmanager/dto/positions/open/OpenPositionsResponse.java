@@ -8,10 +8,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
-import java.util.UUID;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,58 +35,68 @@ public class OpenPositionsResponse {
     public static class OpenPositionDTO {
 
         private String id;
-        @JsonProperty("ticker")
-        private String symbol;
+        @JsonProperty("symbol")
+        private String ticker;
         private Integer leverage;
         private BigDecimal avgPrice;
         private BigDecimal liqPrice;
-        @JsonProperty("unrealisedPnl")
-        private BigDecimal unrealizedPnl;
+        private BigDecimal unrealisedPnl;
         @JsonProperty("markPrice")
         private BigDecimal marketPrice;
-        @JsonProperty("isLong")
-        private boolean isLong;
         private String tradingViewFormat;
+
         @JsonProperty("curRealisedPnl")
         private BigDecimal realizedPnl;
+        @JsonProperty("positionValue")
         private BigDecimal positionValue;
-        private Date createdDate;
+        private LocalDateTime createdTime;
+        private BigDecimal size;
+
+        private String side;
 
         @JsonProperty("positionIdx")
         private Integer positionIdx;
 
 
-        @JsonProperty("id")
-        public String getId() {
-            //TODO: Reconsider this logic
-            if (symbol == null || positionIdx == null) {
-                return null;
+        public boolean getIsLong() {
+            return (side != null && side.equalsIgnoreCase("Buy"));
+        }
+
+        public String getTradingViewFormat() {
+            if (ticker != null) {
+                return "BYBIT:" + ticker + ".P";
             }
-            String sideStr = isLong ? "B" : "S";
-            String key = "BYBIT|" + symbol + "|" + positionIdx + "|" + sideStr;
-            UUID uuid = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
-            return uuid.toString();
+            return null;
         }
 
-
-        @JsonProperty("side")
-        public void determineSide(String sideVal) {
-            this.isLong = sideVal.equalsIgnoreCase("Buy");
-        }
-
-        @JsonProperty("symbol")
-        public void setSymbolAndTradingViewFormat(String symbolVal) {
-            this.symbol = symbolVal;
-            this.tradingViewFormat = "BYBIT" + ":" + symbolVal + ".P";
-
-        }
 
         @JsonProperty("createdTime")
-        public void setCreatedDateByTimestamp(String ts) {
-            Date date = new Date(Long.parseLong(ts));
-            this.createdDate = date;
-
+        public void setCreatedTime(String timestamp) {
+            long epochMilli = Long.parseLong(timestamp);
+            this.createdTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneOffset.UTC);
         }
+
+        @JsonProperty("currentPnlPercent")
+        public BigDecimal getCurrentPnlPercent() {
+            if (unrealisedPnl == null || positionValue == null || positionValue.compareTo(BigDecimal.ZERO) == 0) {
+                return BigDecimal.ZERO;
+            }
+            return unrealisedPnl
+                    .divide(positionValue, 8, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        @JsonProperty("margin")
+        public BigDecimal getMargin() {
+            if (positionValue == null || leverage == null || leverage == 0) {
+                return BigDecimal.ZERO;
+            }
+            return positionValue
+                    .divide(BigDecimal.valueOf(leverage), 8, RoundingMode.HALF_UP)
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
 
 
     }

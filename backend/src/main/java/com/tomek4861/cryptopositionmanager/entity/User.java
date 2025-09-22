@@ -50,7 +50,7 @@ public class User implements UserDetails {
     private ApiKey apiKey;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Position> positionsList;
+    private List<ClosedPosition> positionsList;
 
 
     @Override

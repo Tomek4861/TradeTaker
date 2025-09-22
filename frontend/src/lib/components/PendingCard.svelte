@@ -1,6 +1,5 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
-	import { API_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
 	export let order;
@@ -35,28 +34,9 @@
 		}
 	}
 
-	function getStringAfterColon(inputString) {
-		const parts = inputString.split(':');
-		return parts.length > 1 ? parts.slice(1).join(':') : inputString;
-	}
-
 	async function handleCancel() {
 		try {
-			console.log(order);
-			const res = await fetch(
-				`${API_BASE_URL}/trading/positions/cancel/`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					credentials: 'include',
-					body: JSON.stringify({ tool: order.ticker })
-				}
-			);
-
-			if (!res.ok) {
-				const errText = await res.text();
-				throw new Error(errText || 'Failed to cancel position.');
-			}
+			console.log('Cancelled TBD');
 
 			showSuccessToast('Position cancelled.');
 			dispatch('cancel', { positionId: order.positionId });
@@ -78,20 +58,20 @@
 			<div class="w-1/5 text-start">
 				<p
 					class="uppercase border-l-4 px-2.5 mb-1
-                 {order.side === 'long' ? 'border-l-green-600' : 'border-l-red-600'}">
-					{order.side}
+                 {order.isLong ? 'border-l-green-600' : 'border-l-red-600'}">
+					{order.isLong ? 'Long' : 'Short'}
 				</p>
 				<p class="text-sm text-zinc-400">Qty: {order.quantity}</p>
 			</div>
 
 			<div class="w-3/5 flex flex-col justify-between">
 				<div class="text-center">
-					<p class="font-medium">{getStringAfterColon(order.ticker)}</p>
-					<p class="text-sm text-zinc-400">Margin: {order.margin}$</p>
-					<p class="text-sm text-zinc-400">Leverage: {order.leverage}x</p>
+					<p class="font-medium">{order.ticker}</p>
+					<p class="text-sm text-zinc-400">Value: {order.value}$</p>
+					<p class="text-sm text-zinc-400">Price: {order.price}$</p>
 				</div>
 				<div class="mt-3 text-center">
-					<p class="text-sm text-zinc-200">{order.status}</p>
+					<p class="text-sm text-zinc-200">STATUS REMOVED</p>
 				</div>
 			</div>
 
@@ -104,8 +84,6 @@
 				</button>
 				<button
 					class="py-1 px-3 cursor-pointer rounded-xl hover:bg-zinc-700 border-2 w-20 transition-colors"
-					class:border-green-600={order.cancelLevel && order.takeProfit}
-					class:border-red-600={!order.cancelLevel || !order.takeProfit}
 					on:click={openModal}
 					type="button">
 					Levels
@@ -123,7 +101,7 @@
 			<div class="space-y-4">
 				<div>
 					<label class="block mb-2 text-sm text-zinc-400" for="cancel-level">
-						{#if order.side === 'long'} Overlow{:else} Overhigh{/if}
+						{#if order.isLong} Overlow{:else} Overhigh{/if}
 					</label>
 					<input
 						id="cancel-level"

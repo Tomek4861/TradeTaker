@@ -6,6 +6,8 @@
 	import { showErrorToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
 
+	const fetchIntervalMs = 10000;
+
 	let intervalId;
 	let positions = [];
 	let pendingPositions = [];
@@ -36,7 +38,7 @@
 
 			intervalId = setInterval(async () => {
 				positions = await getCurrentPositions();
-			}, 5000);
+			}, fetchIntervalMs);
 		}
 	);
 	onDestroy(() => {
@@ -45,36 +47,43 @@
 
 
 	async function getCurrentPositions() {
-		const url = `${API_BASE_URL}/trading/positions/current/`;
+		const url = `/api/positions/open`;
 		console.log(`Fetching current positions from: ${url}`);
 
 		try {
-			const response = await fetch(url, { credentials: 'include' });
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch current positions');
-			}
 
 			const apiPositions = await response.json();
 
-			return apiPositions.map(pos => ({
-				positionId: pos.tool + pos.pos_side,
-				ticker: pos.tool,
-				tradingViewFormat: pos.trading_view_format,
-				side: pos.pos_side.toLowerCase(),
-				entryPrice: parseFloat(pos.avg_open),
-				quantity: parseFloat(pos.volume),
-				margin: parseFloat(pos.margin),
-				leverage: pos.leverage,
-				currentPnl: parseFloat(pos.current_pnl),
-				value: parseFloat(pos.volume) * parseFloat(pos.avg_open),
-				openDate: new Date(pos.open_date),
-				realizedPnl: pos.realized_pnl,
-				currentPnlPercent: pos.current_pnl_risk_reward_ratio,
-				stopLoss: null,
-				takeProfit: null
-			}));
+			if (apiPositions.success) {
 
+				return apiPositions['list'].map(pos => ({
+					positionId: pos.id,
+					ticker: pos.symbol,
+					tradingViewFormat: pos.tradingViewFormat,
+					side: pos.side,
+					isLong: pos['isLong'],
+					entryPrice: parseFloat(pos['avgPrice']),
+					quantity: parseFloat(pos.size),
+					margin: parseFloat(pos.margin),
+					leverage: pos.leverage,
+					currentPnl: parseFloat(pos['unrealisedPnl']),
+					value: parseFloat(pos["positionValue"]),
+					openDate: new Date(pos['createdTime']),
+					realizedPnl: pos['curRealisedPnl'],
+					currentPnlPercent: pos['currentPnlPercent'],
+					stopLoss: null,
+					takeProfit: null
+				}));
+			}
+			showErrorToast(apiPositions['message']);
+			return [];
 		} catch (error) {
 			showErrorToast(error.message);
 			console.error(error);
@@ -88,34 +97,44 @@
 
 
 	async function getPendingPositions() {
-		const url = `${API_BASE_URL}/trading/positions/pending/`;
+		const url = `/api/positions/order`;
 
 		try {
-			const response = await fetch(url, { credentials: 'include' });
-			if (!response.ok) {
-				throw new Error('Failed to fetch pending positions');
-			}
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+
 			const apiPositions = await response.json();
+			if (apiPositions.success) {
+				console.log(apiPositions.list);
 
-			return apiPositions.map(pos => ({
-				positionId: pos.tool + pos.pos_side + pos.entry_price,
-				ticker: pos.tool,
-				side: pos.pos_side.toLowerCase(),
-				leverage: parseInt(pos.leverage, 10),
-				quantity: parseFloat(pos.volume),
-				margin: parseFloat(pos.margin),
-				orderType: 'Limit',
-				takeProfit: null,
-				cancelLevel: pos.cancel_levels && pos.cancel_levels.length > 0 ? parseFloat(pos.cancel_levels[0]) : null
-			}));
+				return apiPositions['list'].map(pos => ({
+					positionId: pos['orderId'],
+					ticker: pos.symbol,
+					orderType: pos['orderType'],
+					tradingViewFormat: pos.tradingViewFormat,
+					side: pos.side,
+					isLong: pos['isLong'],
+					price: parseFloat(pos['price']),
+					quantity: parseFloat(pos['qty']),
+					value: parseFloat(pos['value']),
+					openDate: new Date(pos['createdTime']),
+					stopLoss: null,
+					takeProfit: null
+				}));
+			}
+			showErrorToast(apiPositions['message']);
 
-		} catch (error) {
+			return [];		} catch (error) {
 			showErrorToast(error.message);
 			console.error(error);
 			return [];
 		}
 	}
-
 
 	function handleWheel(e) {
 		if (isMobile) return;

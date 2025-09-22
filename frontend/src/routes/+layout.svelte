@@ -8,9 +8,7 @@
 
 	export let data;
 
-
 	$: $userStore = $page.data.user;
-
 
 </script>
 

@@ -3,7 +3,6 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { createEventDispatcher } from 'svelte';
-	import { API_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 
 
@@ -25,23 +24,7 @@
 
 	async function handleClose() {
 		try {
-			const res = await fetch(
-				`${API_BASE_URL}/trading/positions/close-by-market/`,
-
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
-					body: JSON.stringify({ tool: position.ticker })
-				}
-			);
-			if (!res.ok) {
-				const text = await res.text();
-				throw new Error(text || 'Failed to close position.');
-			}
-			showSuccessToast('Position closed.');
+			console.log('TBD');
 			dispatch('close', { positionId: position.positionId });
 		} catch (err) {
 			showErrorToast(err.message);
@@ -67,7 +50,7 @@
 					class:border-l-red-600={!position.isLong}>
 					{position.isLong ? "Long" : "Short"}
 				</p>
-				<p class="text-sm text-zinc-400">Leverage: 50.0x</p>
+				<p class="text-sm text-zinc-400">Leverage: {position.leverage.toFixed(1)}x</p>
 			</div>
 
 			<div class="w-3/5 flex flex-col justify-between">
@@ -81,7 +64,7 @@
 					<p class="text-sm flex flex-col space-y-1 md:inline">
 						<span>Value: {position.value.toFixed(2)}$</span>
 						<span class="mx-1 text-zinc-500 hidden md:inline">|</span>
-						<span>Margin: {Math.abs(position.margin.toFixed(2))}$</span>
+						<span>Margin: {position.margin.toFixed(2)}$</span>
 					</p>
 					<p
 						class="text-lg font-semibold"

@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Data
@@ -17,7 +19,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class OpenOrdersResponse {
-//TODO: Redo files structure
 
 
     @JsonProperty("list")
@@ -31,36 +32,45 @@ public class OpenOrdersResponse {
     public static class ExchangeOrderDTO {
         @JsonProperty("orderId")
         private String id;
-        @JsonProperty("ticker")
-        private String symbol;
+        @JsonProperty("symbol")
+        private String ticker;
         private String orderType;
         private BigDecimal price;
 
-        private Date createdDate;
+        private LocalDateTime createdTime;
 
-        @JsonProperty("isLong")
-        private boolean isLong;
+        @JsonProperty("qty")
+        private BigDecimal quantity;
+
+        private String side;
         private boolean reduceOnly;
-        private String tradingViewFormat;
 
-
-        @JsonProperty("side")
-        public void determineSide(String sideVal) {
-            this.isLong = sideVal.equalsIgnoreCase("Buy");
+        public BigDecimal getValue() {
+            if (price != null && quantity != null) {
+                return price.multiply(quantity);
+            }
+            return null;
         }
+
+        public boolean getIsLong() {
+            return (side != null && side.equalsIgnoreCase("Buy"));
+        }
+
 
         @JsonProperty("createdTime")
-        public void setCreatedDateByTimestamp(String ts) {
-            Date date = new Date(Long.parseLong(ts));
-            this.createdDate = date;
-
+        public void setCreatedTime(String timestamp) {
+            long epochMilli = Long.parseLong(timestamp);
+            this.createdTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneOffset.UTC);
         }
 
-        @JsonProperty("symbol")
-        public void setSymbolAndTradingViewFormat(String symbolVal) {
-            this.symbol = symbolVal;
-            this.tradingViewFormat = "BYBIT" + ":" + symbolVal + ".P";
+
+        public String getTradingViewFormat() {
+            if (ticker != null) {
+                return "BYBIT:" + ticker + ".P";
+            }
+            return null;
         }
+
     }
 
 }

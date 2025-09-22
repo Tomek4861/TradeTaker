@@ -18,7 +18,9 @@ import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.UUID;
 
 
 public class UserBybitService {
@@ -67,6 +69,11 @@ public class UserBybitService {
         GenericResponse<OpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
         OpenPositionsResponse result = response.getResult();
         result.setSuccess(true);
+        result.getPositionDTOList().forEach(
+                position -> position.setId(generatePositionID(position)
+                )
+
+        );
         return result;
 
     }
@@ -78,6 +85,8 @@ public class UserBybitService {
                 .settleCoin("USDT")
                 .build();
         Object openOrdersRawResp = tradeClient.getOpenOrders(request);
+        System.out.println(openOrdersRawResp);
+        System.out.println("openOrdersRawResp");
 
         TypeReference<GenericResponse<OpenOrdersResponse>> typeRef = new TypeReference<>() {
         };
@@ -87,8 +96,18 @@ public class UserBybitService {
         OpenOrdersResponse result = response.getResult();
         result.setSuccess(true);
 
+
         return result;
     }
 
+    private String generatePositionID(OpenPositionsResponse.OpenPositionDTO position) {
+        if (position.getTicker() == null || position.getPositionIdx() == null) {
+            return null;
+        }
+        String sideStr = position.getIsLong() ? "B" : "S";
+        String key = "BYBIT|" + position.getTicker() + "|" + position.getPositionIdx() + "|" + sideStr;
+        UUID uuid = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
+        return uuid.toString();
+    }
 
 }
