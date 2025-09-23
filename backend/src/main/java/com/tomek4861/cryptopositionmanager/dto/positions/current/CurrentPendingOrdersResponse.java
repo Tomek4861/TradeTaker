@@ -1,4 +1,4 @@
-package com.tomek4861.cryptopositionmanager.dto.positions.open;
+package com.tomek4861.cryptopositionmanager.dto.positions.current;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,7 +18,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 
-public class OpenOrdersResponse {
+public class CurrentPendingOrdersResponse {
 
 
     @JsonProperty("list")

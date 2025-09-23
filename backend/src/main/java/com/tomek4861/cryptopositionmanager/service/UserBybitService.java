@@ -16,10 +16,11 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
+import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
-import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenOrdersResponse;
-import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionsResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentPendingOrdersResponse;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -58,7 +59,7 @@ public class UserBybitService {
         return Optional.empty();
     }
 
-    public OpenPositionsResponse getOpenPositions() {
+    public CurrentOpenPositionsResponse getOpenPositions() {
         BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
         PositionDataRequest request = PositionDataRequest.builder()
                 .category(CategoryType.LINEAR)
@@ -68,10 +69,10 @@ public class UserBybitService {
         Object positionInfoRawResp = positionClient.getPositionInfo(request);
         System.out.println(positionInfoRawResp);
         System.out.println("positionInfoRawResp");
-        TypeReference<GenericResponse<OpenPositionsResponse>> typeRef = new TypeReference<>() {
+        TypeReference<GenericResponse<CurrentOpenPositionsResponse>> typeRef = new TypeReference<>() {
         };
-        GenericResponse<OpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
-        OpenPositionsResponse result = response.getResult();
+        GenericResponse<CurrentOpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
+        CurrentOpenPositionsResponse result = response.getResult();
         result.setSuccess(true);
         result.getPositionDTOList().forEach(
                 position -> position.setId(generatePositionID(position)
@@ -82,7 +83,7 @@ public class UserBybitService {
 
     }
 
-    public OpenOrdersResponse getOpenOrders() {
+    public CurrentPendingOrdersResponse getOpenOrders() {
         BybitApiTradeRestClient tradeClient = this.clientFactory.newTradeRestClient();
         TradeOrderRequest request = TradeOrderRequest.builder()
                 .category(CategoryType.LINEAR)
@@ -92,19 +93,19 @@ public class UserBybitService {
         System.out.println(openOrdersRawResp);
         System.out.println("openOrdersRawResp");
 
-        TypeReference<GenericResponse<OpenOrdersResponse>> typeRef = new TypeReference<>() {
+        TypeReference<GenericResponse<CurrentPendingOrdersResponse>> typeRef = new TypeReference<>() {
         };
 
-        GenericResponse<OpenOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
+        GenericResponse<CurrentPendingOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
 
-        OpenOrdersResponse result = response.getResult();
+        CurrentPendingOrdersResponse result = response.getResult();
         result.setSuccess(true);
 
 
         return result;
     }
 
-    private String generatePositionID(OpenPositionsResponse.OpenPositionDTO position) {
+    private String generatePositionID(CurrentOpenPositionsResponse.OpenPositionDTO position) {
         if (position.getTicker() == null || position.getPositionIdx() == null) {
             return null;
         }
@@ -143,6 +144,34 @@ public class UserBybitService {
         }
 
         return standardResponse;
+
+    }
+
+    public StandardResponse changeLeverageForTicker(ChangeLeverageRequest request) {
+        BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
+
+        PositionDataRequest setLeverageRequest = PositionDataRequest.builder()
+                .category(CategoryType.LINEAR)
+                .symbol(request.getTicker())
+                .buyLeverage(request.getLeverage().toString())
+                .sellLeverage(request.getLeverage().toString())
+                .build();
+
+        Object rawApiResponse = positionClient.setPositionLeverage(setLeverageRequest);
+
+        TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
+        };
+        GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
+        System.out.println(apiResponse);
+        StandardResponse standardResponse;
+        if ("OK".equals(apiResponse.getRetMsg())) {
+            standardResponse = new StandardResponse(true);
+        } else {
+            standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
+        }
+
+        return standardResponse;
+
 
     }
 

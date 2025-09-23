@@ -1,4 +1,4 @@
-package com.tomek4861.cryptopositionmanager.dto.positions.open;
+package com.tomek4861.cryptopositionmanager.dto.positions.current;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,7 +19,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpenPositionsResponse {
+public class CurrentOpenPositionsResponse {
 
     private boolean success;
     private String errorMessage;
