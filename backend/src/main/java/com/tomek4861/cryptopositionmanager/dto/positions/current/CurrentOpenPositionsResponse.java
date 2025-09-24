@@ -22,7 +22,7 @@ import java.util.List;
 public class CurrentOpenPositionsResponse {
 
     private boolean success;
-    private String errorMessage;
+    private String error;
 
 
     @JsonProperty("list")

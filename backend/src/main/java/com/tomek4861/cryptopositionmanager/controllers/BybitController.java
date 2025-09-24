@@ -55,4 +55,15 @@ public class BybitController {
         }
     }
 
+    @GetMapping("/ticker-price")
+    public ResponseEntity<BigDecimal> getPriceForTicker(@RequestParam String ticker) {
+        Optional<BigDecimal> priceOptional = publicBybitService.getTickerPrice(ticker);
+
+        if (priceOptional.isPresent()) {
+            return ResponseEntity.ok(priceOptional.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

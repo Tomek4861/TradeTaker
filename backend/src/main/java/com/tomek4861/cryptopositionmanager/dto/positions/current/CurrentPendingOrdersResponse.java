@@ -24,7 +24,7 @@ public class CurrentPendingOrdersResponse {
     @JsonProperty("list")
     private List<ExchangeOrderDTO> ordersList;
     private boolean success;
-    private String errorMessage;
+    private String error;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data

@@ -11,10 +11,12 @@ import com.bybit.api.client.service.BybitApiClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
+import com.tomek4861.cryptopositionmanager.dto.exchange.TickerPriceDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -87,4 +89,29 @@ public class PublicBybitService {
         }
 
     }
+
+
+    public Optional<BigDecimal> getTickerPrice(String ticker) {
+        BybitApiMarketRestClient client = bybitApiClientFactory.newMarketDataRestClient();
+        MarketDataRequest request = MarketDataRequest.builder()
+                .category(CategoryType.LINEAR)
+                .symbol(ticker)
+                .build();
+        Object rawResponse = client.getMarketTickers(request);
+
+        TypeReference<GenericResponse<TickerPriceDTO>> typeRef = new TypeReference<>() {
+        };
+        GenericResponse<TickerPriceDTO> response = objectMapper.convertValue(rawResponse, typeRef);
+        if (response != null && response.getRetCode() == 0 && response.getResult() != null &&
+                response.getResult().getList() != null && !response.getResult().getList().isEmpty()) {
+
+            BigDecimal lastPrice = response.getResult().getList().getFirst().getLastPrice();
+            return Optional.of(lastPrice);
+
+        }
+        return Optional.empty();
+
+
+    }
+
 }

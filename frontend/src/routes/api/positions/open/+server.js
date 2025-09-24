@@ -18,7 +18,7 @@ export async function GET({ cookies, fetch }) {
 			const data = await response.json();
 
 			return json(
-				{ success: false, message: data['errorMessage']  },
+				{ success: false, message: data['error']  },
 				{ status: response.status }
 			);
 		}
@@ -31,6 +31,36 @@ export async function GET({ cookies, fetch }) {
 			{
 				success: false,
 				message: 'An internal error occurred while fetching positions'
+			},
+			{ status: 500 }
+		);
+	}
+}
+
+export async function POST({ request, cookies, fetch }) {
+	try {
+		const body = await request.json();
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', ...getAuthHeader(cookies) },
+			body: JSON.stringify(body)
+		});
+
+		if (!response.ok) {
+			const data = await response.json();
+			return json(
+				{ success: false, message: data['error'] },
+				{ status: response.status }
+			);
+		}
+
+		const data = await response.json();
+		return json(data);
+	} catch (error) {
+		return json(
+			{
+				success: false,
+				message: 'An internal error occurred while placing position'
 			},
 			{ status: 500 }
 		);

@@ -4,8 +4,6 @@ import { getAuthHeader } from '$lib/auth.js';
 
 const url = `${API_BE_BASE_URL}/positions/orders`;
 
-
-
 export async function GET({ cookies, fetch }) {
 	try {
 		const response = await fetch(url, {
@@ -17,10 +15,7 @@ export async function GET({ cookies, fetch }) {
 		if (!response.ok) {
 			const data = await response.json();
 
-			return json(
-				{ success: false, message: data['errorMessage'] },
-				{ status: response.status }
-			);
+			return json({ success: false, message: data['error'] }, { status: response.status });
 		}
 
 		const data = await response.json();

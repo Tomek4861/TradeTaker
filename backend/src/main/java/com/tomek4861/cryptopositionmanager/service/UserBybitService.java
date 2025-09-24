@@ -3,11 +3,9 @@ package com.tomek4861.cryptopositionmanager.service;
 
 import com.bybit.api.client.domain.CategoryType;
 import com.bybit.api.client.domain.GenericResponse;
-import com.bybit.api.client.domain.TradeOrderType;
 import com.bybit.api.client.domain.account.AccountType;
 import com.bybit.api.client.domain.account.request.AccountDataRequest;
 import com.bybit.api.client.domain.position.request.PositionDataRequest;
-import com.bybit.api.client.domain.trade.Side;
 import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.bybit.api.client.restApi.BybitApiAccountRestClient;
 import com.bybit.api.client.restApi.BybitApiPositionRestClient;
@@ -18,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
 import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
-import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentPendingOrdersResponse;
 
@@ -26,7 +23,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
-
 
 public class UserBybitService {
 
@@ -115,37 +111,32 @@ public class UserBybitService {
         return uuid.toString();
     }
 
-    public StandardResponse closePositionByMarket(ClosePositionRequest request) {
-        BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
-        System.out.println(request);
-        System.out.println(request.isLong() ? Side.SELL : Side.BUY);
+    public StandardResponse createOrder(TradeOrderRequest request) {
+        try {
 
-        TradeOrderRequest closeOrderRequest = TradeOrderRequest.builder()
-                .category(CategoryType.LINEAR)
-                .symbol(request.getTicker())
-                .side(request.isLong() ? Side.SELL : Side.BUY)
-                .orderType(TradeOrderType.MARKET)
-                .qty(request.getSize().toString())
-                .reduceOnly(true)
-                .build();
-        Object rawApiResponse = client.createOrder(closeOrderRequest);
+
+        BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
+            Object rawApiResponse = client.createOrder(request);
         System.out.println(rawApiResponse);
-        System.out.println("RAWAPIRESP");
         TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
         };
 
         GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
         System.out.println(apiResponse);
         StandardResponse standardResponse;
-        if (apiResponse.getRetMsg().equals("OK")) {
+            if (apiResponse.getRetCode() == 0) {
             standardResponse = new StandardResponse(true);
         } else {
             standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
         }
 
         return standardResponse;
-
+        } catch (Exception e) {
+            return new StandardResponse(false, "Failed to create order: " + e.getMessage());
+        }
     }
+
+
 
     public StandardResponse changeLeverageForTicker(ChangeLeverageRequest request) {
         BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
@@ -164,7 +155,7 @@ public class UserBybitService {
         GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
         System.out.println(apiResponse);
         StandardResponse standardResponse;
-        if ("OK".equals(apiResponse.getRetMsg())) {
+        if (apiResponse.getRetCode() == 0) {
             standardResponse = new StandardResponse(true);
         } else {
             standardResponse = new StandardResponse(false, apiResponse.getRetMsg());

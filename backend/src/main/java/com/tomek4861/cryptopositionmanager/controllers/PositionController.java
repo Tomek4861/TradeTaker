@@ -5,10 +5,12 @@ import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentPendingOrdersResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
+import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
 import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import jakarta.validation.Valid;
@@ -26,6 +28,7 @@ public class PositionController {
 
     private final PositionCalculatorService positionCalculatorService;
     private final UserSettingsService userSettingsService;
+    private final TradingOrchestrationService tradingOrchestrationService;
 
     @PostMapping("/preview")
     public ResponseEntity<PreviewPositionResponse> previewPosition(
@@ -60,7 +63,7 @@ public class PositionController {
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             CurrentOpenPositionsResponse errResp = new CurrentOpenPositionsResponse();
             errResp.setSuccess(false);
-            errResp.setErrorMessage("API key not set");
+            errResp.setError("API key not set");
             return ResponseEntity.badRequest().body(errResp);
         }
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
@@ -77,7 +80,7 @@ public class PositionController {
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             CurrentPendingOrdersResponse errResp = new CurrentPendingOrdersResponse();
-            errResp.setErrorMessage("API key not set");
+            errResp.setError("API key not set");
             errResp.setSuccess(false);
             return ResponseEntity.badRequest().body(errResp);
         }
@@ -98,8 +101,12 @@ public class PositionController {
         }
 
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
-        var resp = userBybitService.closePositionByMarket(request);
-        return ResponseEntity.ok(resp);
+        var resp = tradingOrchestrationService.closePositionByMarket(request);
+        if (resp.isSuccess()) {
+            return ResponseEntity.ok(resp);
+        } else {
+            return ResponseEntity.badRequest().body(resp);
+        }
 
 
     }
@@ -115,8 +122,31 @@ public class PositionController {
         }
         UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
         var resp = userBybitService.changeLeverageForTicker(request);
-        return ResponseEntity.ok(resp);
+        if (resp.isSuccess()) {
+            return ResponseEntity.ok(resp);
+        } else {
+            return ResponseEntity.badRequest().body(resp);
+        }
 
+
+    }
+
+    @PostMapping("/open")
+    public ResponseEntity<StandardResponse> openNewPosition(Authentication auth, @Valid @RequestBody OpenPositionWithTPRequest request) {
+        String username = auth.getName();
+        ApiKey apiKey = userSettingsService.getApiKey(username);
+
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            StandardResponse errResp = new StandardResponse(false, "API key not set");
+            return ResponseEntity.badRequest().body(errResp);
+        }
+
+        var resp = tradingOrchestrationService.openPositionWithTakeProfits(request);
+        if (resp.isSuccess()) {
+            return ResponseEntity.ok(resp);
+        } else {
+            return ResponseEntity.badRequest().body(resp);
+        }
 
     }
 

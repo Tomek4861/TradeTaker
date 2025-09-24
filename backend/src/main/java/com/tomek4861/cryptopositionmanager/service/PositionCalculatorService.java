@@ -4,6 +4,7 @@ import com.bybit.api.client.domain.market.response.instrumentInfo.LeverageFilter
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.takeprofit.TakeProfitLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +13,11 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 @RequiredArgsConstructor
 public class PositionCalculatorService {
+    // TODO: refactor this code
+
     private final PublicBybitService publicBybitService;
 
     public PreviewPositionResponse calculatePositionInfo(PreviewPositionRequest request, String apiKey, String secretKey, BigDecimal riskPercentage) {
@@ -25,11 +27,12 @@ public class PositionCalculatorService {
         if (accBalanceOptional.isEmpty()) {
             return new PreviewPositionResponse("Failed to get balance");
         }
+        System.out.println(request);
 
         BigDecimal accBalance = accBalanceOptional.get();
         BigDecimal entry = request.getEntryPrice();
-        BigDecimal stopLoss = request.getStopLossPrice();
-        List<BigDecimal> takeProfits = request.getTakeProfitLevels();
+        BigDecimal stopLoss = request.getStopLoss();
+        List<TakeProfitLevel> takeProfits = request.getTakeProfitLevels();
         System.out.println(takeProfits + "TPS");
 
         // risk amount in usd
@@ -88,10 +91,15 @@ public class PositionCalculatorService {
         BigDecimal potentialProfit = BigDecimal.ZERO;
         BigDecimal riskToRewardRatio = BigDecimal.ZERO;
 
+        // check if take profits sum to 100
+
+
         if (takeProfits != null && !takeProfits.isEmpty()) {
-            BigDecimal avgTPLevel = takeProfits.stream()
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(new BigDecimal(takeProfits.size()), 8, RoundingMode.HALF_UP);
+
+            if (!validatePercentageSum(takeProfits)) {
+                return new PreviewPositionResponse("Take Profit levels percentage does not sum to 100%");
+            }
+            BigDecimal avgTPLevel = calculateWeightedAveragePrice(takeProfits);
 
             potentialProfit = avgTPLevel.subtract(entry).abs().multiply(positionSize);
 
@@ -100,16 +108,42 @@ public class PositionCalculatorService {
             }
         }
 
+        // Position Size and Value
+        BigDecimal requiredMargin = positionValue.divide(leverage, 8, RoundingMode.HALF_UP);
+
+
         var response = new PreviewPositionResponse(
                 true,
                 leverage.setScale(0, RoundingMode.DOWN),
-                positionValue.setScale(2, RoundingMode.HALF_UP),
+                requiredMargin.setScale(2, RoundingMode.HALF_UP),
                 riskAmount.setScale(2, RoundingMode.HALF_UP),
                 potentialProfit.setScale(2, RoundingMode.HALF_UP),
                 riskToRewardRatio,
+                positionValue.setScale(2, RoundingMode.HALF_UP),
+                positionSize.setScale(4, RoundingMode.HALF_UP),
                 null
         );
 
         return response;
+    }
+
+    private boolean validatePercentageSum(List<TakeProfitLevel> levels) {
+        BigDecimal totalPercentage = levels.stream()
+                .map(TakeProfitLevel::getPercentage)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalPercentage.compareTo(BigDecimal.valueOf(100)) == 0;
+    }
+
+    private BigDecimal calculateWeightedAveragePrice(List<TakeProfitLevel> levels) {
+        BigDecimal weightedSum = levels.stream()
+                .map(level -> level.getPrice().multiply(level.getPercentage()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalWeight = levels.stream()
+                .map(TakeProfitLevel::getPercentage)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return weightedSum.divide(totalWeight, 8, RoundingMode.HALF_UP);
     }
 }
