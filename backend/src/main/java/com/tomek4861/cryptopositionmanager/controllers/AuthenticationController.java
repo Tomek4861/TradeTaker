@@ -10,8 +10,9 @@ import com.tomek4861.cryptopositionmanager.service.AuthenticationService;
 import com.tomek4861.cryptopositionmanager.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 
 @RequiredArgsConstructor
@@ -41,9 +42,9 @@ public class AuthenticationController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<String> isAuthenticated(Authentication authentication) {
+    public ResponseEntity<String> isAuthenticated(Principal principal) {
 
-        String username = authentication.getName();
+        String username = principal.getName();
         return ResponseEntity.ok(username);
     }
 

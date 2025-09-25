@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
+
 public class ApiKey {
 
     public ApiKey(String key, String secret) {

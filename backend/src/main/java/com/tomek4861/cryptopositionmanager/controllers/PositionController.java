@@ -9,14 +9,14 @@ import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTP
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
+import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
 import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
-import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -27,19 +27,17 @@ import java.math.BigDecimal;
 public class PositionController {
 
     private final PositionCalculatorService positionCalculatorService;
-    private final UserSettingsService userSettingsService;
     private final TradingOrchestrationService tradingOrchestrationService;
 
     @PostMapping("/preview")
     public ResponseEntity<PreviewPositionResponse> previewPosition(
             @Valid @RequestBody PreviewPositionRequest request,
-            Authentication authentication) {
+            @AuthenticationPrincipal User user) {
 
         System.out.println("Received preview position request: " + request);
 
-        String username = authentication.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
-        BigDecimal riskPercentage = userSettingsService.getRiskPercentage(username);
+        ApiKey apiKey = user.getApiKey();
+        BigDecimal riskPercentage = user.getRiskPercent();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             return ResponseEntity.badRequest().body(new PreviewPositionResponse("API key not set"));
@@ -56,9 +54,8 @@ public class PositionController {
     }
 
     @GetMapping("/open")
-    public ResponseEntity<CurrentOpenPositionsResponse> getOpenPositions(Authentication auth) {
-        String username = auth.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<CurrentOpenPositionsResponse> getOpenPositions(@AuthenticationPrincipal User user) {
+        ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             CurrentOpenPositionsResponse errResp = new CurrentOpenPositionsResponse();
@@ -74,9 +71,8 @@ public class PositionController {
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<CurrentPendingOrdersResponse> getOpenOrders(Authentication auth) {
-        String username = auth.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<CurrentPendingOrdersResponse> getOpenOrders(@AuthenticationPrincipal User user) {
+        ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             CurrentPendingOrdersResponse errResp = new CurrentPendingOrdersResponse();
@@ -91,16 +87,14 @@ public class PositionController {
     }
 
     @PostMapping("/close")
-    public ResponseEntity<StandardResponse> closePosition(Authentication auth, @Valid @RequestBody ClosePositionRequest request) {
-        String username = auth.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<StandardResponse> closePosition(@AuthenticationPrincipal User user, @Valid @RequestBody ClosePositionRequest request) {
+        ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             StandardResponse errResp = new StandardResponse(false, "API key not set");
             return ResponseEntity.badRequest().body(errResp);
         }
 
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
         var resp = tradingOrchestrationService.closePositionByMarket(request);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
@@ -112,9 +106,8 @@ public class PositionController {
     }
 
     @PostMapping("/leverage")
-    public ResponseEntity<StandardResponse> changeLeverage(Authentication auth, @Valid @RequestBody ChangeLeverageRequest request) {
-        String username = auth.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<StandardResponse> changeLeverage(@AuthenticationPrincipal User user, @Valid @RequestBody ChangeLeverageRequest request) {
+        ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             StandardResponse errResp = new StandardResponse(false, "API key not set");
@@ -132,9 +125,8 @@ public class PositionController {
     }
 
     @PostMapping("/open")
-    public ResponseEntity<StandardResponse> openNewPosition(Authentication auth, @Valid @RequestBody OpenPositionWithTPRequest request) {
-        String username = auth.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<StandardResponse> openNewPosition(@AuthenticationPrincipal User user, @Valid @RequestBody OpenPositionWithTPRequest request) {
+        ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
             StandardResponse errResp = new StandardResponse(false, "API key not set");

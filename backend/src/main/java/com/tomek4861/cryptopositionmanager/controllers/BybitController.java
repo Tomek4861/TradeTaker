@@ -3,12 +3,13 @@ package com.tomek4861.cryptopositionmanager.controllers;
 
 import com.bybit.api.client.domain.CategoryType;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
+import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PublicBybitService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
 import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,9 +44,11 @@ public class BybitController {
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<BigDecimal> getAccountBalance(Authentication authentication) {
-        String username = authentication.getName();
-        ApiKey apikeyObj = userSettingsService.getApiKey(username);
+    public ResponseEntity<BigDecimal> getAccountBalance(@AuthenticationPrincipal User user) {
+        ApiKey apikeyObj = user.getApiKey();
+        if (apikeyObj == null) {
+            return ResponseEntity.status(400).body(new BigDecimal("-1"));
+        }
         UserBybitService userBybitService = new UserBybitService(apikeyObj.getKey(), apikeyObj.getSecret());
         Optional<BigDecimal> balance = userBybitService.getAccountBalance();
         if (balance.isPresent()) {

@@ -70,7 +70,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception exception) {
-            // todo: check this hanling
             logger.error("Cannot set user authentication: {}", exception);
             handlerExceptionResolver.resolveException(request, response, null, exception);
 

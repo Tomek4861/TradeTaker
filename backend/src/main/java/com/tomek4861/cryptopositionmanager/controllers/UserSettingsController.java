@@ -4,14 +4,17 @@ package com.tomek4861.cryptopositionmanager.controllers;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.settings.*;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
+import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 
 
 @RequiredArgsConstructor
@@ -32,8 +35,8 @@ public class UserSettingsController {
     }
 
     @GetMapping
-    public ResponseEntity<AllSettingsResponse> getSettings(Authentication authentication) {
-        String username = authentication.getName();
+    public ResponseEntity<AllSettingsResponse> getSettings(Principal principal) {
+        String username = principal.getName();
         var resp = userSettingsService.getAllSettings(username);
         return ResponseEntity.ok(resp);
 
@@ -41,8 +44,8 @@ public class UserSettingsController {
 
 
     @PostMapping("/apikey")
-    public ResponseEntity<StandardResponse> saveApiKey(@RequestBody ApiKeyRequest apiKeyRequest, Authentication authentication) {
-        String username = authentication.getName();
+    public ResponseEntity<StandardResponse> saveApiKey(@RequestBody ApiKeyRequest apiKeyRequest, Principal principal) {
+        String username = principal.getName();
         userSettingsService.saveApiKey(username, apiKeyRequest);
 
         var resp = new StandardResponse(true);
@@ -51,28 +54,30 @@ public class UserSettingsController {
     }
 
     @GetMapping("/apikey")
-    public ResponseEntity<ApiKeyResponse> getApiKey(Authentication authentication) {
-        String username = authentication.getName();
-        ApiKey apiKey = userSettingsService.getApiKey(username);
+    public ResponseEntity<ApiKeyResponse> getApiKey(@AuthenticationPrincipal User user) {
+        ApiKey apiKey = user.getApiKey();
 
-        var resp = new ApiKeyResponse(apiKey.getKey());
+        String key = apiKey != null ? apiKey.getKey() : null;
+        var resp = new ApiKeyResponse(key);
         return ResponseEntity.ok(resp);
-
     }
 
     @PostMapping("/risk-percentage")
-    public ResponseEntity<StandardResponse> saveRisk(Authentication authentication, @Valid @RequestBody RiskPercentRequest riskPercentRequest) {
+    public ResponseEntity<StandardResponse> saveRisk(Principal principal, @Valid @RequestBody RiskPercentRequest riskPercentRequest) {
 
-        String username = authentication.getName();
+        String username = principal.getName();
         userSettingsService.setRiskPercentage(username, riskPercentRequest.getRiskPercent());
         return ResponseEntity.ok(new StandardResponse(true));
     }
 
     @GetMapping("/risk-percentage")
-    public ResponseEntity<BigDecimal> getRisk(Authentication authentication) {
+    public ResponseEntity<BigDecimal> getRisk(@AuthenticationPrincipal User user) {
 
-        String username = authentication.getName();
-        return ResponseEntity.ok(userSettingsService.getRiskPercentage(username));
+        BigDecimal riskPercent = user.getRiskPercent();
+        if (riskPercent == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(riskPercent);
     }
 
 
