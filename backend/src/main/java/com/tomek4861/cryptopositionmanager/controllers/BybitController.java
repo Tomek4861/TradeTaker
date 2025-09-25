@@ -6,7 +6,6 @@ import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PublicBybitService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
-import com.tomek4861.cryptopositionmanager.service.UserSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class BybitController {
 
     private final PublicBybitService publicBybitService;
-    private final UserSettingsService userSettingsService;
 
 
     @GetMapping("/tickers")
@@ -47,14 +45,14 @@ public class BybitController {
     public ResponseEntity<BigDecimal> getAccountBalance(@AuthenticationPrincipal User user) {
         ApiKey apikeyObj = user.getApiKey();
         if (apikeyObj == null) {
-            return ResponseEntity.status(400).body(new BigDecimal("-1"));
+            return ResponseEntity.badRequest().build();
         }
         UserBybitService userBybitService = new UserBybitService(apikeyObj.getKey(), apikeyObj.getSecret());
         Optional<BigDecimal> balance = userBybitService.getAccountBalance();
         if (balance.isPresent()) {
             return ResponseEntity.ok(balance.get());
         } else {
-            return ResponseEntity.internalServerError().body(new BigDecimal("-1"));
+            return ResponseEntity.internalServerError().build();
         }
     }
 

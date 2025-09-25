@@ -2,6 +2,7 @@ package com.tomek4861.cryptopositionmanager.dto.settings;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +16,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AllSettingsRequest {
 
+    @NotNull
+    @NotEmpty
     private String apiKey;
+    @NotNull
+    @NotEmpty
     private String secretKey;
 
     @NotNull
