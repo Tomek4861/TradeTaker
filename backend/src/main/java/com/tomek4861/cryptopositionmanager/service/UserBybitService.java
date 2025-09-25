@@ -27,11 +27,11 @@ import java.util.UUID;
 public class UserBybitService {
 
     private final BybitApiClientFactory clientFactory;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
-    public UserBybitService(String apiKey, String secretKey) {
+    public UserBybitService(String apiKey, String secretKey, ObjectMapper objectMapper) {
         this.clientFactory = BybitApiClientFactory.newInstance(apiKey, secretKey);
-
+        this.objectMapper = objectMapper;
     }
 
     public Optional<BigDecimal> getAccountBalance() {

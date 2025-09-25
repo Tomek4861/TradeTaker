@@ -193,7 +193,7 @@
 			isLong: isLong,
 			entryPrice: effectiveEntryPrice,
 			stopLoss: stopLoss,
-			takeProfitLevels: isMarket ? takeProfits.filter(p => p.price > 0) : null
+			takeProfitLevels: isMarket ? takeProfits.filter(p => p.price > 0 && p.percentage != null) : null
 		};
 
 		try {
@@ -283,7 +283,7 @@
 				showSuccessToast('Position placed successfully!');
 				return true;
 			} else {
-				showErrorToast(responseData.error);
+								showErrorToast(responseData.error);
 				return false;
 			}
 
@@ -314,17 +314,6 @@
 			}
 		} finally {
 			isSubmitting = false;
-		}
-	}
-
-	function getRiskRewardColor(ratio) {
-		if (!ratio) return 'zinc-400';
-		if (ratio > 2) {
-			return 'green-500';
-		} else if (ratio >= 1 && ratio <= 2) {
-			return 'yellow-400';
-		} else {
-			return 'red-500';
 		}
 	}
 
@@ -562,9 +551,15 @@
 				</div>
 				<div class="flex justify-between">
 					<span class="text-zinc-400">Risk to Reward ratio:</span>
+
 					<span
-<!--					TODO: Switch to svelte class: instead of my func-->
-						class="text-{getRiskRewardColor(riskRewardRatio)}">{riskRewardRatio ? `1 : ${riskRewardRatio.toFixed(1)}` : '-'}</span>
+						class:text-green-500={riskRewardRatio >2}
+						class:text-yellow-400={riskRewardRatio >= 1 && riskRewardRatio <= 2}
+						class:text-red-500={riskRewardRatio <1}
+						class:text-zinc-400={riskRewardRatio == null}
+					>
+						{riskRewardRatio ? `1 : ${riskRewardRatio.toFixed(1)}` : '-'}
+					</span>
 				</div>
 			</div>
 

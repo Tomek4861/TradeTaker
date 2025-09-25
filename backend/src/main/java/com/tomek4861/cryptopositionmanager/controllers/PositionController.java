@@ -13,6 +13,7 @@ import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
 import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitService;
+import com.tomek4861.cryptopositionmanager.service.UserBybitServiceFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class PositionController {
 
     private final PositionCalculatorService positionCalculatorService;
     private final TradingOrchestrationService tradingOrchestrationService;
+    private final UserBybitServiceFactory userBybitServiceFactory;
 
     @PostMapping("/preview")
     public ResponseEntity<PreviewPositionResponse> previewPosition(
@@ -63,7 +65,7 @@ public class PositionController {
             errResp.setError("API key not set");
             return ResponseEntity.badRequest().body(errResp);
         }
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
         CurrentOpenPositionsResponse openPositions = userBybitService.getOpenPositions();
 
         return ResponseEntity.ok(openPositions);
@@ -81,7 +83,7 @@ public class PositionController {
             return ResponseEntity.badRequest().body(errResp);
         }
 
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
         CurrentPendingOrdersResponse openOrders = userBybitService.getOpenOrders();
         return ResponseEntity.ok(openOrders);
     }
@@ -113,7 +115,7 @@ public class PositionController {
             StandardResponse errResp = new StandardResponse(false, "API key not set");
             return ResponseEntity.badRequest().body(errResp);
         }
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
         var resp = userBybitService.changeLeverageForTicker(request);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);

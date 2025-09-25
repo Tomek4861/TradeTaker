@@ -21,9 +21,9 @@ public class PreviewPositionResponse {
     private BigDecimal size;
     private String error;
 
-    public PreviewPositionResponse(String errorMsg) {
+    public PreviewPositionResponse(String error) {
         this.success = false;
-        this.error = errorMsg;
+        this.error = error;
     }
 
 }

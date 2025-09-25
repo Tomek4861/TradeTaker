@@ -27,6 +27,7 @@ import java.util.List;
 public class TradingOrchestrationService {
 
     private final UserSettingsService userSettingsService;
+    private final UserBybitServiceFactory userBybitServiceFactory;
 
 
     public StandardResponse openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
@@ -38,7 +39,7 @@ public class TradingOrchestrationService {
         if (apiKey == null) {
             return new StandardResponse(false, "API key not configured.");
         }
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
         TradeOrderType tradeType = request.getEntryPrice() != null ? TradeOrderType.LIMIT : TradeOrderType.MARKET;
         boolean areAnyTPs = request.getTakeProfitLevels() != null && !request.getTakeProfitLevels().isEmpty();
@@ -115,7 +116,7 @@ public class TradingOrchestrationService {
         if (apiKey == null) {
             return new StandardResponse(false, "API key not configured.");
         }
-        UserBybitService userBybitService = new UserBybitService(apiKey.getKey(), apiKey.getSecret());
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
         System.out.println(request);
         System.out.println(request.isLong() ? Side.SELL : Side.BUY);

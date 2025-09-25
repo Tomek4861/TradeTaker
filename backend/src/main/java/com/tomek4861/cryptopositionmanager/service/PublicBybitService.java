@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
 import com.tomek4861.cryptopositionmanager.dto.exchange.TickerPriceDTO;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +24,11 @@ import java.util.Optional;
 
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class PublicBybitService {
 
     private final BybitApiClientFactory bybitApiClientFactory;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
 
     public Object getAllTickers(CategoryType category) {
@@ -71,6 +71,7 @@ public class PublicBybitService {
         if (response != null && response.getResult() != null && response.getResult().getInstrumentEntries() != null) {
             List<InstrumentEntry> instrumentEntries = response.getResult().getInstrumentEntries();
 
+
             List<InstrumentEntryDTO> filteredEntries = instrumentEntries.stream()
                     .filter(
                             elem -> "LinearPerpetual".equals(elem.getContractType()) && elem.getSymbol().endsWith("USDT")
@@ -80,8 +81,6 @@ public class PublicBybitService {
                             elem -> new InstrumentEntryDTO(elem, "BYBIT")
                     )
                     .toList();
-
-            System.out.println("size arr " + filteredEntries.size());
 
             return filteredEntries;
         } else {
