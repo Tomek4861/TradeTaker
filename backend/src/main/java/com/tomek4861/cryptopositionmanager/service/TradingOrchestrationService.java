@@ -6,6 +6,7 @@ import com.bybit.api.client.domain.TradeOrderType;
 import com.bybit.api.client.domain.trade.Side;
 import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.tomek4861.cryptopositionmanager.domain.position.takeprofit.CalculatedTakeProfit;
+import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class TradingOrchestrationService {
 
     private final UserSettingsService userSettingsService;
     private final UserBybitServiceFactory userBybitServiceFactory;
+    private final PublicBybitService publicBybitService;
 
 
     public StandardResponse openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
@@ -46,6 +49,16 @@ public class TradingOrchestrationService {
 
         List<CalculatedTakeProfit> calculatedTakeProfitList = new ArrayList<>();
 
+        Optional<BigDecimal> qtyStepOpt = fetchQtyStep(request.getTicker());
+        if (qtyStepOpt.isEmpty()) {
+            return new StandardResponse(false, "Failed to fetch Qty Step. Probably invalid ticker");
+        }
+        BigDecimal qtyStep = qtyStepOpt.get();
+
+        BigDecimal finalOrderSize = adjustSizeToQtyStep(new BigDecimal(request.getSize().toPlainString()), qtyStep);
+
+
+
         if (areAnyTPs && tradeType.equals(TradeOrderType.LIMIT)) {
             return new StandardResponse(false, "Cannot set take profit levels for limit order");
 
@@ -56,11 +69,10 @@ public class TradingOrchestrationService {
                 return new StandardResponse(false, "Take Profit levels percentage does not sum to 100%");
             }
             try {
-                calculatedTakeProfitList = convertTakeProfitsToQuantities(request.getTakeProfitLevels(), request.getSize());
+                calculatedTakeProfitList = convertTakeProfitsToQuantities(request.getTakeProfitLevels(), finalOrderSize);
             } catch (CalculationException e) {
                 return new StandardResponse(false, e.getMessage());
             }
-
         }
 
 
@@ -69,7 +81,7 @@ public class TradingOrchestrationService {
                 .symbol(request.getTicker())
                 .side(request.isLong() ? Side.BUY : Side.SELL)
                 .orderType(tradeType)
-                .qty(request.getSize().toPlainString())
+                .qty(finalOrderSize.toPlainString())
                 .price(request.getEntryPrice() != null ? request.getEntryPrice().toPlainString() : null)
                 .stopLoss(request.getStopLoss().toPlainString())
                 .build();
@@ -90,6 +102,7 @@ public class TradingOrchestrationService {
         // add take profits
         if (areAnyTPs) {
             for (var tpLevel : calculatedTakeProfitList) {
+//                BigDecimal tpOrderSize = adjustSizeToQtyStep(new BigDecimal(tpLevel.getSize().toPlainString()), qtyStep);
                 TradeOrderRequest takeProfitRequest = TradeOrderRequest.builder()
                         .category(CategoryType.LINEAR)
                         .symbol(request.getTicker())
@@ -181,6 +194,21 @@ public class TradingOrchestrationService {
         System.out.println(resultTakeProfits);
 
         return resultTakeProfits;
+    }
+
+    private BigDecimal adjustSizeToQtyStep(BigDecimal size, BigDecimal qtyStep) {
+
+        return size.divide(qtyStep, 0, RoundingMode.DOWN).multiply(qtyStep);
+    }
+
+    private Optional<BigDecimal> fetchQtyStep(String ticker) {
+        Optional<InstrumentEntryDTO> tickerInfoOpt = publicBybitService.getPerpetualTickerBySymbol(ticker);
+        if (tickerInfoOpt.isPresent()) {
+            return Optional.of(new BigDecimal(tickerInfoOpt.get().getInstrumentEntry().getLotSizeFilter().getQtyStep()));
+        } else {
+            return Optional.empty();
+        }
+
     }
 }
 
