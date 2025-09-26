@@ -4,6 +4,7 @@ import com.tomek4861.cryptopositionmanager.dto.positions.preview.CalculationPara
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.CalculationResult;
 import com.tomek4861.cryptopositionmanager.dto.positions.takeprofit.TakeProfitLevel;
 import com.tomek4861.cryptopositionmanager.exception.CalculationException;
+import lombok.ToString;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.math.RoundingMode;
 import java.util.List;
 
 @Component
+@ToString
 public class PositionCalculator {
     private static final BigDecimal MAINTENANCE_MARGIN_RATE = new BigDecimal("0.003");
     private static final BigDecimal LEVERAGE_SAFETY_BUFFER = new BigDecimal("0.9");
@@ -23,6 +25,7 @@ public class PositionCalculator {
 
 
         BigDecimal finalPositionSize = adjustSizeToQtyStep(rawPositionSize, params.qtyStep());
+
 
         BigDecimal stopLossDistanceInDollars = params.entryPrice().subtract(params.stopLoss()).abs();
         BigDecimal finalPotentialLoss = finalPositionSize.multiply(stopLossDistanceInDollars);

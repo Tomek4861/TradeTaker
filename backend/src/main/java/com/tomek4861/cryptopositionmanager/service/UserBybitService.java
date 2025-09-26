@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
+
 public class UserBybitService {
 
     private final BybitApiClientFactory clientFactory;
@@ -115,27 +116,26 @@ public class UserBybitService {
         try {
 
 
-        BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
+            BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
             Object rawApiResponse = client.createOrder(request);
-        System.out.println(rawApiResponse);
-        TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
-        };
+            System.out.println(rawApiResponse);
+            TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
+            };
 
-        GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
-        System.out.println(apiResponse);
-        StandardResponse standardResponse;
+            GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
+            System.out.println(apiResponse);
+            StandardResponse standardResponse;
             if (apiResponse.getRetCode() == 0) {
-            standardResponse = new StandardResponse(true);
-        } else {
-            standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
-        }
+                standardResponse = new StandardResponse(true);
+            } else {
+                standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
+            }
 
-        return standardResponse;
+            return standardResponse;
         } catch (Exception e) {
             return new StandardResponse(false, "Failed to create order: " + e.getMessage());
         }
     }
-
 
 
     public StandardResponse changeLeverageForTicker(ChangeLeverageRequest request) {

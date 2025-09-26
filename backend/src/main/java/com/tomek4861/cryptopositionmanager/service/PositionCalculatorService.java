@@ -62,6 +62,7 @@ public class PositionCalculatorService {
         try {
             CalculationResult result = positionCalculator.calculate(params);
 
+
             return new PreviewPositionResponse(
                     true,
                     result.leverage().setScale(0, RoundingMode.DOWN),
