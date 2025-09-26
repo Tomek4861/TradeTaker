@@ -69,7 +69,6 @@
 	}
 
 
-
 	const marketPriceFetchDelay = 3000;
 
 	onMount(async () => {
@@ -168,7 +167,7 @@
 			return [];
 		}
 	}
- // TODO: Fix UI FOR TP's on mobile
+
 
 	function addTakeProfit() {
 		takeProfits = [...takeProfits, { price: null, percentage: null }];
@@ -283,7 +282,7 @@
 				showSuccessToast('Position placed successfully!');
 				return true;
 			} else {
-								showErrorToast(responseData.error);
+							showErrorToast(responseData.error);
 				return false;
 			}
 
@@ -393,7 +392,7 @@
 					disabled
 					type="number"
 				/>
-								<span class="">x</span>
+				<span class="">x</span>
 
 				<div class="flex-1 flex justify-end">
 					<p class="uppercase border-r-4 px-2.5 mb-1 text-lg"
@@ -477,9 +476,9 @@
 							bind:group={moveSLToBEIndex}
 							value={index}
 						/>
-						<label for="tp-be-{index}" class="text-zinc-400 w-16 text-start text-nowrap">TP {index + 1}:</label>
+						<label for="tp-be-{index}" class="text-zinc-400 md:w-16 text-start text-nowrap">TP {index + 1}:</label>
 
-						<div class="flex-1 flex gap-2 min-w-[200px]">
+						<div class="flex-1 flex gap-2 min-w-[200px] ">
 							<input
 								type="number"
 								bind:value={tp.price}
@@ -487,7 +486,7 @@
 								class="bg-zinc-800 flex-1 min-w-0 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
 							/>
 
-							<div class="relative">
+							<div class="">
 								<input
 									type="number"
 									bind:value={tp.percentage}
@@ -497,24 +496,24 @@
 									step="1"
 									inputmode="decimal"
 									aria-label="TP precent"
-									class="bg-zinc-800 max-w-20 rounded-xl px-2 pr-8 py-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+									class="bg-zinc-800 max-w-20 rounded-xl px-1 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm text-center inline-flex"
 									on:blur={() => (tp.percentage = normalizePercent(tp.percentage, index))}
 								/>
 								<span
-									class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">%</span>
+									class="pointer-events-none right-2 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">%</span>
 							</div>
 
 
+							<button
+								class="py-1 px-3  cursor-pointer rounded-xl hover:bg-zinc-800 border-2 border-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+								on:click={() => removeTakeProfit(index)}
+								disabled={takeProfits.length <= 1}
+								tabindex="0"
+								type="button">
+								Remove
+							</button>
 						</div>
 
-						<button
-							class="py-1 px-3  cursor-pointer rounded-xl hover:bg-zinc-800 border-2 border-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed "
-							on:click={() => removeTakeProfit(index)}
-							disabled={takeProfits.length <= 1}
-							tabindex="0"
-							type="button">
-							Remove
-						</button>
 					</div>
 				{/each}
 				<button
@@ -556,7 +555,7 @@
 						class:text-green-500={riskRewardRatio >2}
 						class:text-yellow-400={riskRewardRatio >= 1 && riskRewardRatio <= 2}
 						class:text-red-500={riskRewardRatio <1}
-						class:text-zinc-400={riskRewardRatio == null}
+						class:text-white={riskRewardRatio == null}
 					>
 						{riskRewardRatio ? `1 : ${riskRewardRatio.toFixed(1)}` : '-'}
 					</span>
