@@ -9,10 +9,14 @@ import com.tomek4861.cryptopositionmanager.domain.position.takeprofit.Calculated
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
+import com.tomek4861.cryptopositionmanager.dto.positions.close.PositionCloseDTO;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.takeprofit.TakeProfitLevel;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
+import com.tomek4861.cryptopositionmanager.entity.ClosedPosition;
+import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.exception.CalculationException;
+import com.tomek4861.cryptopositionmanager.repository.ClosedPositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +35,7 @@ public class TradingOrchestrationService {
     private final UserSettingsService userSettingsService;
     private final UserBybitServiceFactory userBybitServiceFactory;
     private final PublicBybitService publicBybitService;
+    private final ClosedPositionRepository closedPositionRepository;
 
 
     public StandardResponse openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
@@ -56,7 +61,6 @@ public class TradingOrchestrationService {
         BigDecimal qtyStep = qtyStepOpt.get();
 
         BigDecimal finalOrderSize = adjustSizeToQtyStep(new BigDecimal(request.getSize().toPlainString()), qtyStep);
-
 
 
         if (areAnyTPs && tradeType.equals(TradeOrderType.LIMIT)) {
@@ -124,7 +128,7 @@ public class TradingOrchestrationService {
     }
 
 
-    public StandardResponse closePositionByMarket(ClosePositionRequest request) {
+    public StandardResponse closePositionByMarket(ClosePositionRequest request, User user) {
         ApiKey apiKey = getApiKeyForCurrentUser();
         if (apiKey == null) {
             return new StandardResponse(false, "API key not configured.");
@@ -145,7 +149,44 @@ public class TradingOrchestrationService {
 
         // Bybit automatically closes positions reduce-only
 
-        return userBybitService.createOrder(closeOrderRequest);
+        StandardResponse orderResponse = userBybitService.createOrder(closeOrderRequest);
+        if (!orderResponse.isSuccess()) {
+            return orderResponse;
+        }
+        // now we get final position data
+        final int fetchAttempts = 5;
+        final int fetchDelayMs = 300;
+        for (int i = 0; i < fetchAttempts; i++) {
+            try {
+                // wait for bybit to process positions
+                Thread.sleep(fetchDelayMs); // bad practise ik. :(
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return new StandardResponse(false, "Operation interrupted");
+            }
+            Optional<PositionCloseDTO.ClosedPnlEntry> positionCloseDataOpt = userBybitService.getLatestPositionDataForTicker(request.getTicker());
+            if (positionCloseDataOpt.isEmpty()) {
+                continue;
+            }
+            PositionCloseDTO.ClosedPnlEntry positionCloseData = positionCloseDataOpt.get();
+
+            ClosedPosition closedPosition = ClosedPosition.builder()
+                    .avgEntryPrice(positionCloseData.getAvgEntryPrice())
+                    .avgClosePrice(positionCloseData.getAvgExitPrice())
+                    .volume(positionCloseData.getQty())
+                    .realizedPnl(positionCloseData.getClosedPnl())
+                    .filledAt(positionCloseData.getCreatedTime())
+                    .closedAt(positionCloseData.getUpdatedTime())
+                    .side(positionCloseData.getSide().equals("Buy") ? ClosedPosition.PositionSide.LONG : ClosedPosition.PositionSide.SHORT)
+                    .user(user)
+                    .build();
+
+            closedPositionRepository.save(closedPosition);
+
+            return new StandardResponse(true);
+        }
+
+        return new StandardResponse(false, "Position was closed, but failed to fetch and save closing data in time");
 
     }
 

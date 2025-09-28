@@ -3,8 +3,8 @@ package com.tomek4861.cryptopositionmanager.controllers;
 import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
-import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentPendingOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
@@ -73,18 +73,18 @@ public class PositionController {
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<CurrentPendingOrdersResponse> getOpenOrders(@AuthenticationPrincipal User user) {
+    public ResponseEntity<CurrentOpenOrdersResponse> getOpenOrders(@AuthenticationPrincipal User user) {
         ApiKey apiKey = user.getApiKey();
 
         if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            CurrentPendingOrdersResponse errResp = new CurrentPendingOrdersResponse();
+            CurrentOpenOrdersResponse errResp = new CurrentOpenOrdersResponse();
             errResp.setError("API key not set");
             errResp.setSuccess(false);
             return ResponseEntity.badRequest().body(errResp);
         }
 
         UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
-        CurrentPendingOrdersResponse openOrders = userBybitService.getOpenOrders();
+        CurrentOpenOrdersResponse openOrders = userBybitService.getOpenOrders();
         return ResponseEntity.ok(openOrders);
     }
 
@@ -97,7 +97,7 @@ public class PositionController {
             return ResponseEntity.badRequest().body(errResp);
         }
 
-        var resp = tradingOrchestrationService.closePositionByMarket(request);
+        var resp = tradingOrchestrationService.closePositionByMarket(request, user);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
         } else {

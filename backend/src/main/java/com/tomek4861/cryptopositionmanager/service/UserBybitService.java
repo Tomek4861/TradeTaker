@@ -16,8 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
 import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.close.PositionCloseDTO;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
-import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentPendingOrdersResponse;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -64,8 +65,6 @@ public class UserBybitService {
                 .build();
 
         Object positionInfoRawResp = positionClient.getPositionInfo(request);
-        System.out.println(positionInfoRawResp);
-        System.out.println("positionInfoRawResp");
         TypeReference<GenericResponse<CurrentOpenPositionsResponse>> typeRef = new TypeReference<>() {
         };
         GenericResponse<CurrentOpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
@@ -80,7 +79,7 @@ public class UserBybitService {
 
     }
 
-    public CurrentPendingOrdersResponse getOpenOrders() {
+    public CurrentOpenOrdersResponse getOpenOrders() {
         BybitApiTradeRestClient tradeClient = this.clientFactory.newTradeRestClient();
         TradeOrderRequest request = TradeOrderRequest.builder()
                 .category(CategoryType.LINEAR)
@@ -90,12 +89,12 @@ public class UserBybitService {
         System.out.println(openOrdersRawResp);
         System.out.println("openOrdersRawResp");
 
-        TypeReference<GenericResponse<CurrentPendingOrdersResponse>> typeRef = new TypeReference<>() {
+        TypeReference<GenericResponse<CurrentOpenOrdersResponse>> typeRef = new TypeReference<>() {
         };
 
-        GenericResponse<CurrentPendingOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
+        GenericResponse<CurrentOpenOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
 
-        CurrentPendingOrdersResponse result = response.getResult();
+        CurrentOpenOrdersResponse result = response.getResult();
         result.setSuccess(true);
 
 
@@ -163,6 +162,28 @@ public class UserBybitService {
 
         return standardResponse;
 
+
+    }
+
+    public Optional<PositionCloseDTO.ClosedPnlEntry> getLatestPositionDataForTicker(String ticker) {
+        BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
+        PositionDataRequest request = PositionDataRequest.builder()
+                .category(CategoryType.LINEAR)
+                .symbol(ticker)
+                .limit(1)
+                .build();
+
+        Object rawResponse = positionClient.getClosePnlList(request);
+        TypeReference<GenericResponse<PositionCloseDTO>> typeRef = new TypeReference<>() {
+        };
+        GenericResponse<PositionCloseDTO> response = objectMapper.convertValue(rawResponse, typeRef);
+        if (response != null && response.getRetCode() == 0 && response.getResult() != null &&
+                response.getResult().getPnlEntryList() != null && !response.getResult().getPnlEntryList().isEmpty()) {
+
+            PositionCloseDTO.ClosedPnlEntry finalResponse = response.getResult().getPnlEntryList().getFirst();
+            return Optional.of(finalResponse);
+        }
+        return Optional.empty();
 
     }
 

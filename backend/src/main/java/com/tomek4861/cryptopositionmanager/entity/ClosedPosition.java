@@ -2,11 +2,15 @@ package com.tomek4861.cryptopositionmanager.entity;
 
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "closed_positions")
 public class ClosedPosition {
@@ -25,10 +29,9 @@ public class ClosedPosition {
     @Column(name = "id")
     private Integer id;
 
-
-    @Column(name = "leverage", nullable = false)
-    private BigDecimal leverage;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "side")
+    private PositionSide side;
 
     @Column(name = "volume", nullable = false)
     private BigDecimal volume;
