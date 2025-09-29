@@ -2,7 +2,6 @@
 	import { onDestroy, onMount } from 'svelte';
 	import PositionCard from '$lib/components/PositionCard.svelte';
 	import PendingCard from '$lib/components/PendingCard.svelte';
-	import { API_BASE_URL } from '$lib/config.js';
 	import { showErrorToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
 
@@ -74,7 +73,7 @@
 					margin: parseFloat(pos.margin),
 					leverage: pos.leverage,
 					currentPnl: parseFloat(pos['unrealisedPnl']),
-					value: parseFloat(pos["positionValue"]),
+					value: parseFloat(pos['positionValue']),
 					openDate: new Date(pos['createdTime']),
 					realizedPnl: pos['curRealisedPnl'],
 					currentPnlPercent: pos['currentPnlPercent'],
@@ -94,7 +93,6 @@
 	async function handlePendingCancel() {
 		pendingPositions = await getPendingPositions();
 	}
-
 
 	async function getPendingPositions() {
 		const url = `/api/positions/order`;
@@ -123,13 +121,17 @@
 					quantity: parseFloat(pos['qty']),
 					value: parseFloat(pos['value']),
 					openDate: new Date(pos['createdTime']),
+					status: pos['orderStatus'],
+					timeInForce: pos['timeInForce'],
 					stopLoss: null,
 					takeProfit: null
 				}));
+			} else {
+				showErrorToast(apiPositions.message);
+				return [];
 			}
-			showErrorToast(apiPositions['message']);
 
-			return [];		} catch (error) {
+		} catch (error) {
 			showErrorToast(error.message);
 			console.error(error);
 			return [];

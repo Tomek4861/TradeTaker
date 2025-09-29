@@ -45,6 +45,13 @@ public class CurrentOpenOrdersResponse {
         private String side;
         private boolean reduceOnly;
 
+
+        @JsonProperty("orderStatus")
+        private String status;
+
+        @JsonProperty("timeInForce")
+        private String timeInForce;
+
         public BigDecimal getValue() {
             if (price != null && quantity != null) {
                 return price.multiply(quantity);

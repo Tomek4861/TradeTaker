@@ -35,10 +35,27 @@
 	}
 
 	async function handleCancel() {
+		const payload = {
+			ticker: order.ticker,
+			orderId: order.positionId,
+		}
+		console.log(payload);
 		try {
-			console.log('Cancelled TBD');
+			const response = await fetch('/api/positions/cancel', {
+				method: 'POST',
+				body: JSON.stringify(payload),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-			showSuccessToast('Position cancelled.');
+			const responseJson = await response.json();
+
+			if (responseJson.success) {
+								showSuccessToast('Order canceled!');
+			} else {
+				showErrorToast(responseJson.message);
+			}
 			dispatch('cancel', { positionId: order.positionId });
 		} catch (err) {
 			showErrorToast(err.message);
@@ -55,23 +72,26 @@
 		</div>
 
 		<div class="p-4 flex-grow flex flex-row">
-			<div class="w-1/5 text-start">
-				<p
-					class="uppercase border-l-4 px-2.5 mb-1
+			<div class="w-1/5 text-start flex flex-col justify-between">
+				<div class="">
+					<p
+						class="uppercase border-l-4 px-2.5 mb-1
                  {order.isLong ? 'border-l-green-600' : 'border-l-red-600'}">
-					{order.isLong ? 'Long' : 'Short'}
-				</p>
-				<p class="text-sm text-zinc-400">Qty: {order.quantity}</p>
+						{order.isLong ? 'Long' : 'Short'}
+					</p>
+					<p class="text-sm text-zinc-400">Qty: {order.quantity}</p>
+				</div>
+				<p class="text-xs text-white"><span class="hidden md:inline">Time in Force:</span> {order.timeInForce}</p>
 			</div>
 
 			<div class="w-3/5 flex flex-col justify-between">
 				<div class="text-center">
-					<p class="font-medium">{order.ticker}</p>
+					<p class="font-medium mb-1">{order.ticker}</p>
 					<p class="text-sm text-zinc-400">Value: {order.value}$</p>
 					<p class="text-sm text-zinc-400">Price: {order.price}$</p>
 				</div>
 				<div class="mt-3 text-center">
-					<p class="text-sm text-zinc-200">STATUS REMOVED</p>
+					<p class="text-sm text-zinc-600">Status: {order.status}</p>
 				</div>
 			</div>
 

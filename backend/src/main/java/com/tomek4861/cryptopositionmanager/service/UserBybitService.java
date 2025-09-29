@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomek4861.cryptopositionmanager.dto.exchange.WalletBalanceDTO;
 import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.cancel.CancelPendingOrderRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.PositionCloseDTO;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
@@ -152,7 +153,6 @@ public class UserBybitService {
         TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
         };
         GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
-        System.out.println(apiResponse);
         StandardResponse standardResponse;
         if (apiResponse.getRetCode() == 0) {
             standardResponse = new StandardResponse(true);
@@ -185,6 +185,33 @@ public class UserBybitService {
         }
         return Optional.empty();
 
+    }
+
+    public StandardResponse cancelPendingOrder(CancelPendingOrderRequest request) {
+        try {
+            BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
+
+            TradeOrderRequest cancelRequest = TradeOrderRequest.builder()
+                    .category(CategoryType.LINEAR)
+                    .symbol(request.getTicker())
+                    .orderId(request.getOrderId())
+                    .build();
+
+            Object rawApiResponse = client.cancelOrder(cancelRequest);
+
+            TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
+            };
+            GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
+
+            if (apiResponse.getRetCode() == 0) {
+                return new StandardResponse(true);
+            } else {
+                return new StandardResponse(false, apiResponse.getRetMsg());
+            }
+
+        } catch (Exception e) {
+            return new StandardResponse(false, "Failed to cancel order: " + e.getMessage());
+        }
     }
 
 }

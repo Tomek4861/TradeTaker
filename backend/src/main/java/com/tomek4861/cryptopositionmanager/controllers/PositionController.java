@@ -2,6 +2,7 @@ package com.tomek4861.cryptopositionmanager.controllers;
 
 import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.cancel.CancelPendingOrderRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenOrdersResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
@@ -100,6 +101,26 @@ public class PositionController {
         }
 
         var resp = tradingOrchestrationService.closePositionByMarket(request, user);
+        if (resp.isSuccess()) {
+            return ResponseEntity.ok(resp);
+        } else {
+            return ResponseEntity.badRequest().body(resp);
+        }
+
+
+    }
+
+    @PostMapping("/cancel-order")
+    public ResponseEntity<StandardResponse> cancelOrder(@AuthenticationPrincipal User user, @Valid @RequestBody CancelPendingOrderRequest request) {
+        ApiKey apiKey = user.getApiKey();
+
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            StandardResponse errResp = new StandardResponse(false, "API key not set");
+            return ResponseEntity.badRequest().body(errResp);
+        }
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        var resp = userBybitService.cancelPendingOrder(request);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
         } else {

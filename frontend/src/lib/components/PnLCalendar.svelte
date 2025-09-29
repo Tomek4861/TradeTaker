@@ -1,5 +1,5 @@
 <script>
-	import { API_BASE_URL } from '$lib/config.js';
+	import { showErrorToast } from '$lib/toasts.js';
 
 	let monthlyData = {};
 	let isLoading = true;
@@ -17,28 +17,34 @@
 	async function fetchMonthlyData(year, month) {
 		isLoading = true;
 		const apiMonth = month + 1;
-		const url = `${API_BASE_URL}/stats/pnl-calendar/all/${year}/${apiMonth}/`;
+		const url = `/api/stats?year=${year}&month=${apiMonth}`;
 
 
 		try {
 			const response = await fetch(url, {
-				credentials: 'include'
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			});
 
-			if (!response.ok) {
-				throw new Error(`Response erorr: ${response.status}`);
+			const responseJson = await response.json();
+
+
+			if (!responseJson.success) {
+								showErrorToast(responseJson.message);
+				return;
 			}
 
-			const responseData = await response.json();
 			const parsedData = {};
 
-			if (responseData && responseData.pnl_by_day) {
-				for (const [date, pnl] of Object.entries(responseData.pnl_by_day)) {
-					parsedData[date] = parseFloat(pnl);
-				}
+			if (responseJson && responseJson.data) {
+				responseJson.data.forEach((item) => {
+					parsedData[item.date] = item.pnl;
+				});
+
 			}
 			monthlyData = parsedData;
-
 		} catch (error) {
 			console.error('Error Downloading data:', error);
 			monthlyData = {};
@@ -110,8 +116,8 @@
 <div class="bg-zinc-900 text-white p-2 md:p-6 rounded-2xl max-w-full md:max-w-lg mx-auto shadow-lg">
 
 	<header class="flex items-center justify-between mb-4 md:mb-6">
-		<button on:click={goToPreviousMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors"
-						disabled={isLoading}>&lt;
+		<button class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading}
+						on:click={goToPreviousMonth}>&lt;
 		</button>
 		<div class="font-bold text-lg md:text-2xl text-center w-48">
 			{#if isLoading}
@@ -120,7 +126,7 @@
 				{enMonths[currentMonth]} {currentYear}
 			{/if}
 		</div>
-		<button on:click={goToNextMonth} class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading}>
+		<button class="p-2 rounded-full hover:bg-zinc-700 transition-colors" disabled={isLoading} on:click={goToNextMonth}>
 			&gt;
 		</button>
 	</header>
