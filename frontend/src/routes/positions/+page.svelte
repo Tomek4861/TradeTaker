@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import PositionCard from '$lib/components/PositionCard.svelte';
 	import PendingCard from '$lib/components/PendingCard.svelte';
-	import { showErrorToast } from '$lib/toasts.js';
+	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
 
 	const fetchIntervalMs = 10000;
@@ -90,9 +90,6 @@
 		}
 	}
 
-	async function handlePendingCancel() {
-		pendingPositions = await getPendingPositions();
-	}
 
 	async function getPendingPositions() {
 		const url = `/api/positions/order`;
@@ -122,9 +119,7 @@
 					value: parseFloat(pos['value']),
 					openDate: new Date(pos['createdTime']),
 					status: pos['orderStatus'],
-					timeInForce: pos['timeInForce'],
-					stopLoss: null,
-					takeProfit: null
+					timeInForce: pos['timeInForce']
 				}));
 			} else {
 				showErrorToast(apiPositions.message);
@@ -145,6 +140,36 @@
 			container.scrollLeft += e.deltaY;
 		}
 	}
+
+	async function handlePendingCancel(orderIdToCancel) {
+		const payload = {
+			ticker: pendingPositions.find(p => p.positionId === orderIdToCancel)?.ticker,
+			orderId: orderIdToCancel
+		};
+
+		if (!payload.ticker) return;
+
+		try {
+			const response = await fetch('/api/positions/cancel', {
+				method: 'POST',
+				body: JSON.stringify(payload),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const responseJson = await response.json();
+
+			if (responseJson.success) {
+				showSuccessToast('Order canceled!');
+				pendingPositions = pendingPositions.filter(order => order.positionId !== orderIdToCancel);
+			} else {
+				showErrorToast(responseJson.message);
+			}
+		} catch (err) {
+			showErrorToast(err.message);
+		}
+	}
+
 
 </script>
 
@@ -202,7 +227,7 @@
 				{:else}
 					<div class="flex-none max-h-full md:max-h-[500px] md:overflow-y-auto scrollbar-win11">
 						{#each pendingPositions as order (order.positionId)}
-							<PendingCard {order} on:cancel={handlePendingCancel()} />
+							<PendingCard {order} onCancel={() => handlePendingCancel(order.positionId)} />
 						{/each}
 					</div>
 				{/if}
