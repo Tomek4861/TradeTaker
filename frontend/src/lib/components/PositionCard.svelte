@@ -11,8 +11,6 @@
 	}
 
 
-
-
 	// Modal state
 	let showConfirm = false;
 
@@ -59,7 +57,7 @@
 			const result = await response.json();
 
 			if (!result.success) {
-				showErrorToast(result.message || 'Failed to close position.');
+				showErrorToast(result.error || 'Failed to close position.');
 				return;
 			}
 			showSuccessToast('Position closed successfully!');

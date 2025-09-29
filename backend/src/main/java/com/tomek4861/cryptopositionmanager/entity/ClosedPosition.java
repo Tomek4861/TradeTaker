@@ -26,11 +26,11 @@ public class ClosedPosition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "side")
+    @Column(name = "side", nullable = false)
     private PositionSide side;
 
     @Column(name = "volume", nullable = false)
@@ -46,11 +46,11 @@ public class ClosedPosition {
     @Column(name = "filled_at")
     private LocalDateTime filledAt;
 
-    @Column(name = "closed_at")
+    @Column(name = "closed_at", nullable = false)
     private LocalDateTime closedAt;
 
 
-    @Column(name = "realized_pnl")
+    @Column(name = "realized_pnl", nullable = false)
     private BigDecimal realizedPnl;
 
     @Column(name = "paid_commission")

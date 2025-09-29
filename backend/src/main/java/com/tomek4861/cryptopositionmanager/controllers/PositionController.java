@@ -8,19 +8,20 @@ import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPosi
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
+import com.tomek4861.cryptopositionmanager.dto.stats.ClosedPositionDTO;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.User;
-import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
-import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
-import com.tomek4861.cryptopositionmanager.service.UserBybitService;
-import com.tomek4861.cryptopositionmanager.service.UserBybitServiceFactory;
+import com.tomek4861.cryptopositionmanager.service.*;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/positions")
@@ -30,6 +31,7 @@ public class PositionController {
     private final PositionCalculatorService positionCalculatorService;
     private final TradingOrchestrationService tradingOrchestrationService;
     private final UserBybitServiceFactory userBybitServiceFactory;
+    private final StatsService statsService;
 
     @PostMapping("/preview")
     public ResponseEntity<PreviewPositionResponse> previewPosition(
@@ -141,6 +143,18 @@ public class PositionController {
         } else {
             return ResponseEntity.badRequest().body(resp);
         }
+
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<ClosedPositionDTO>> getClosedPositionsByDayAndMonth(
+            @AuthenticationPrincipal User user,
+            @RequestParam @Min(2020) @Max(2100) int year,
+            @RequestParam @Min(1) @Max(12) int month
+    ) {
+
+        var resp = statsService.getClosedPositionsForMonthAndYear(user, year, month);
+        return ResponseEntity.ok(resp);
 
     }
 

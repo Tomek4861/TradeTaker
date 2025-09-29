@@ -27,6 +27,7 @@ public class AuthenticationService {
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setEmail(request.getEmail());
         newUser.setUsername(request.getUsername());
+        newUser.setAuthProviderEnum(User.AuthProviderEnum.LOCAL);
 
         userRepository.save(newUser);
 
