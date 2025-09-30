@@ -1,68 +1,13 @@
-import { json } from '@sveltejs/kit';
-import { API_BE_BASE_URL } from '$lib/config.js';
-import { getAuthHeader } from '$lib/auth.js';
+import { proxyGet, proxyPost } from '$lib/apiProxy.js';
 
-const url = `${API_BE_BASE_URL}/positions/open`;
+const targetPath = `/positions/open`;
 
-
-
-export async function GET({ cookies, fetch }) {
-	try {
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: { 'Content-Type': 'application/json', ...getAuthHeader(cookies) }
-		});
-		console.log('Response ' + response.status);
-
-		if (!response.ok) {
-			const data = await response.json();
-
-			return json(
-				{ success: false, message: data['error']  },
-				{ status: response.status }
-			);
-		}
-
-		const data = await response.json();
-
-		return json(data);
-	} catch (error) {
-		return json(
-			{
-				success: false,
-				message: 'An internal error occurred while fetching positions'
-			},
-			{ status: 500 }
-		);
-	}
+export async function POST(event) {
+	return proxyPost(event, targetPath);
+}
+export async function GET(event) {
+	return proxyGet(event, targetPath);
 }
 
-export async function POST({ request, cookies, fetch }) {
-	try {
-		const body = await request.json();
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json', ...getAuthHeader(cookies) },
-			body: JSON.stringify(body)
-		});
 
-		if (!response.ok) {
-			const data = await response.json();
-			return json(
-				{ success: false, message: data['error'] },
-				{ status: response.status }
-			);
-		}
-
-		const data = await response.json();
-		return json(data);
-	} catch (error) {
-		return json(
-			{
-				success: false,
-				message: 'An internal error occurred while placing position'
-			},
-			{ status: 500 }
-		);
-	}
-}
+//TODO: Inny response

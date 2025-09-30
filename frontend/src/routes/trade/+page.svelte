@@ -10,7 +10,6 @@
 
 	let selectedTicker = { value: null, label: null, exchangeFormat: null };
 	let screenWidth = 0;
-	$: isMobile = screenWidth < 768;
 
 	let accountBalance = 0;
 	let riskPercent = 0;
