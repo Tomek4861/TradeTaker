@@ -17,10 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -29,6 +26,15 @@ public class PublicBybitService {
 
     private final BybitApiClientFactory bybitApiClientFactory;
     private final ObjectMapper objectMapper;
+
+    private static final List<String> CUSTOM_ORDER_LIST = List.of("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT");
+    private static final Map<String, Integer> CUSTOM_ORDER_MAP = new HashMap<>();
+
+    static {
+        for (int i = 0; i < CUSTOM_ORDER_LIST.size(); i++) {
+            CUSTOM_ORDER_MAP.put(CUSTOM_ORDER_LIST.get(i), i);
+        }
+    }
 
 
     public Object getAllTickers(CategoryType category) {
@@ -76,7 +82,14 @@ public class PublicBybitService {
                     .filter(
                             elem -> "LinearPerpetual".equals(elem.getContractType()) && elem.getSymbol().endsWith("USDT")
                     )
-                    .sorted(Comparator.comparing(InstrumentEntry::getLaunchTime))
+                    .sorted(
+                            Comparator.comparing(
+                                    (InstrumentEntry entry) -> CUSTOM_ORDER_MAP.getOrDefault(entry.getSymbol(), Integer.MAX_VALUE)
+                            ).thenComparing(
+                                    InstrumentEntry::getLaunchTime
+                            )
+
+                    )
                     .map(
                             elem -> new InstrumentEntryDTO(elem, "BYBIT")
                     )
