@@ -4,6 +4,7 @@
 	import PendingCard from '$lib/components/PendingCard.svelte';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
+	import { apiFetch } from '$lib/api.js';
 
 	const fetchIntervalMs = 10000;
 
@@ -50,7 +51,7 @@
 		console.log(`Fetching current positions from: ${url}`);
 
 		try {
-			const response = await fetch(url, {
+			const responseJson = await apiFetch(url, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
@@ -58,11 +59,10 @@
 			});
 
 
-			const apiPositions = await response.json();
 
-			if (apiPositions.success) {
+			if (responseJson.success) {
 
-				return apiPositions['list'].map(pos => ({
+				return responseJson.data.list.map(pos => ({
 					positionId: pos.id,
 					ticker: pos.symbol,
 					tradingViewFormat: pos.tradingViewFormat,
@@ -81,7 +81,7 @@
 					takeProfit: null
 				}));
 			}
-			showErrorToast(apiPositions['message']);
+			showErrorToast(responseJson.error);
 			return [];
 		} catch (error) {
 			showErrorToast(error.message);
@@ -95,7 +95,7 @@
 		const url = `/api/positions/order`;
 
 		try {
-			const response = await fetch(url, {
+			const responseJson = await apiFetch(url, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
@@ -103,11 +103,10 @@
 			});
 
 
-			const apiPositions = await response.json();
-			if (apiPositions.success) {
-				console.log(apiPositions.list);
+			if (responseJson.success) {
+				console.log(responseJson.data.list);
 
-				return apiPositions['list'].map(pos => ({
+				return responseJson.data.list.map(pos => ({
 					positionId: pos['orderId'],
 					ticker: pos.symbol,
 					orderType: pos['orderType'],
@@ -122,7 +121,7 @@
 					timeInForce: pos['timeInForce']
 				}));
 			} else {
-				showErrorToast(apiPositions.message);
+				showErrorToast(responseJson.error);
 				return [];
 			}
 
@@ -150,14 +149,13 @@
 		if (!payload.ticker) return;
 
 		try {
-			const response = await fetch('/api/positions/cancel', {
+			const responseJson = await apiFetch('/api/positions/cancel', {
 				method: 'POST',
 				body: JSON.stringify(payload),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			const responseJson = await response.json();
 
 			if (responseJson.success) {
 				showSuccessToast('Order canceled!');

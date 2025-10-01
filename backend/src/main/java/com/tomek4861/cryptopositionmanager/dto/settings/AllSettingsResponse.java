@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AllSettingsResponse {
 
-    private boolean success;
     private String apiKey;
     private BigDecimal riskPercentage;
 }

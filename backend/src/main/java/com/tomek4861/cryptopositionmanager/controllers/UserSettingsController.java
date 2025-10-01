@@ -26,58 +26,56 @@ public class UserSettingsController {
 
 
     @PutMapping
-    public ResponseEntity<StandardResponse> saveSettings(@RequestBody @Valid AllSettingsRequest settingsRequest, Authentication authentication) {
+    public ResponseEntity<StandardResponse<Void>> saveSettings(@RequestBody @Valid AllSettingsRequest settingsRequest, Authentication authentication) {
         String username = authentication.getName();
         userSettingsService.saveAllSettings(username, settingsRequest);
-        var resp = new StandardResponse(true);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(StandardResponse.success());
 
     }
 
     @GetMapping
-    public ResponseEntity<AllSettingsResponse> getSettings(Principal principal) {
+    public ResponseEntity<StandardResponse<AllSettingsResponse>> getSettings(Principal principal) {
         String username = principal.getName();
         var resp = userSettingsService.getAllSettings(username);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(StandardResponse.success(resp));
 
     }
 
 
     @PostMapping("/apikey")
-    public ResponseEntity<StandardResponse> saveApiKey(@RequestBody ApiKeyRequest apiKeyRequest, Principal principal) {
+    public ResponseEntity<StandardResponse<Void>> saveApiKey(@RequestBody ApiKeyRequest apiKeyRequest, Principal principal) {
         String username = principal.getName();
         userSettingsService.saveApiKey(username, apiKeyRequest);
 
-        var resp = new StandardResponse(true);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(StandardResponse.success());
 
     }
 
     @GetMapping("/apikey")
-    public ResponseEntity<ApiKeyResponse> getApiKey(@AuthenticationPrincipal User user) {
+    public ResponseEntity<StandardResponse<ApiKeyResponse>> getApiKey(@AuthenticationPrincipal User user) {
         ApiKey apiKey = user.getApiKey();
 
         String key = apiKey != null ? apiKey.getKey() : null;
         var resp = new ApiKeyResponse(key);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(StandardResponse.success(resp));
     }
 
     @PostMapping("/risk-percentage")
-    public ResponseEntity<StandardResponse> saveRisk(Principal principal, @Valid @RequestBody RiskPercentRequest riskPercentRequest) {
+    public ResponseEntity<StandardResponse<Void>> saveRisk(Principal principal, @Valid @RequestBody RiskPercentRequest riskPercentRequest) {
 
         String username = principal.getName();
         userSettingsService.setRiskPercentage(username, riskPercentRequest.getRiskPercent());
-        return ResponseEntity.ok(new StandardResponse(true));
+        return ResponseEntity.ok(StandardResponse.success());
     }
 
     @GetMapping("/risk-percentage")
-    public ResponseEntity<BigDecimal> getRisk(@AuthenticationPrincipal User user) {
+    public ResponseEntity<StandardResponse<BigDecimal>> getRisk(@AuthenticationPrincipal User user) {
 
         BigDecimal riskPercent = user.getRiskPercent();
         if (riskPercent == null) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(riskPercent);
+        return ResponseEntity.ok(StandardResponse.success(riskPercent));
     }
 
 

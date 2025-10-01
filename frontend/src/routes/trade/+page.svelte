@@ -4,6 +4,7 @@
 	import TradingViewWidget from '$lib/components/TradingViewWidget.svelte';
 	import { goto } from '$app/navigation';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
+	import { apiFetch } from '$lib/api.js';
 
 
 	let items = [];
@@ -95,12 +96,11 @@
 
 	async function getMarketPrice(ticker) {
 		try {
-			const response = await fetch(`/api/trade/perpetual-tickers/price?ticker=${ticker}`, {
+			const responseJson = await apiFetch(`/api/trade/perpetual-tickers/price?ticker=${ticker}`, {
 				headers: { 'Content-Type': 'application/json' }
 			});
-			const data = await response.json();
-			if (data.success) {
-				tickerPrice = parseFloat(data.price);
+			if (responseJson.success) {
+				tickerPrice = parseFloat(responseJson.data);
 			}
 
 		} catch (error) {
@@ -111,12 +111,11 @@
 
 	async function loadRiskPercentage() {
 		try {
-			const response = await fetch(`/api/settings/risk-percentage/`, {
+			const responseJson = await apiFetch(`/api/settings/risk-percentage/`, {
 				headers: { 'Content-Type': 'application/json' }
 			});
-			const data = await response.json();
 
-			riskPercent = parseFloat(data.riskPercentage);
+			riskPercent = parseFloat(responseJson.data);
 
 		} catch (error) {
 			showErrorToast(error.message);
@@ -126,12 +125,11 @@
 
 	async function loadAccountBalance() {
 		try {
-			const response = await fetch('/api/trade/balance', {
+			const responseJson = await apiFetch('/api/trade/balance', {
 				headers: { 'Content-Type': 'application/json' }
 			});
-			const result = await response.json();
 
-			accountBalance = parseFloat(result.balance);
+			accountBalance = parseFloat(responseJson.data);
 		} catch (error) {
 			console.error('Error fetching balance:', error);
 		}
@@ -140,14 +138,12 @@
 
 	async function loadTradableTickers() {
 		try {
-			const response = await fetch(`/api/trade/perpetual-tickers`, {
+			const responseJson = await apiFetch(`/api/trade/perpetual-tickers`, {
 				headers: { 'Content-Type': 'application/json' }
 			});
 
 
-			const responseJson = await response.json();
-
-			const responseData = JSON.parse(responseJson['data']);
+			const responseData = responseJson.data;
 
 			responseData.forEach(elem => {
 				leverageLimits.set(elem['instrumentEntry']['symbol'], elem['instrumentEntry']['leverageFilter']['maxLeverage']);
@@ -195,7 +191,7 @@
 		};
 
 		try {
-			const response = await fetch(`/api/positions/preview`, {
+			const responseJson = await apiFetch(`/api/positions/preview`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -204,18 +200,17 @@
 				body: JSON.stringify(payload)
 			});
 
-			const responseData = await response.json();
-			console.log(responseData);
+			console.log(responseJson);
 
-			if (responseData.success) {
+			if (responseJson.success) {
 
-				leverage = parseFloat(responseData.leverage);
-				requiredMargin = parseFloat(responseData['requiredMargin']);
-				potentialLoss = parseFloat(responseData['potentialLoss']);
-				potentialProfit = parseFloat(responseData['potentialProfit']);
-				riskRewardRatio = parseFloat(responseData['riskToRewardRatio']);
-				positionSize = parseFloat(responseData['size']);
-				positionValue = parseFloat(responseData['value']);
+				leverage = parseFloat(responseJson.data.leverage);
+				requiredMargin = parseFloat(responseJson.data['requiredMargin']);
+				potentialLoss = parseFloat(responseJson.data['potentialLoss']);
+				potentialProfit = parseFloat(responseJson.data['potentialProfit']);
+				riskRewardRatio = parseFloat(responseJson.data['riskToRewardRatio']);
+				positionSize = parseFloat(responseJson.data['size']);
+				positionValue = parseFloat(responseJson.data['value']);
 
 			}
 
@@ -230,7 +225,7 @@
 			ticker: selectedTicker.exchangeFormat
 		};
 		try {
-			const response = await fetch(`/api/positions/leverage`, {
+			const responseJson = await apiFetch(`/api/positions/leverage`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -239,13 +234,11 @@
 				body: JSON.stringify(payload)
 			});
 
-			const responseData = await response.json();
-
-			if (responseData.success) {
+			if (responseJson.success) {
 				showSuccessToast('Leverage successfully set!');
 				return true;
 			} else {
-				showErrorToast(responseData.error);
+				showErrorToast(responseJson.error);
 
 			}
 		} catch (error) {
@@ -266,7 +259,7 @@
 		};
 
 		try {
-			const response = await fetch(`/api/positions/open`, {
+			const responseJson = await apiFetch(`/api/positions/open`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -275,13 +268,11 @@
 				body: JSON.stringify(payload)
 			});
 
-			const responseData = await response.json();
-
-			if (responseData.success) {
+			if (responseJson.success) {
 				showSuccessToast('Position placed successfully!');
 				return true;
 			} else {
-							showErrorToast(responseData.error);
+				showErrorToast(responseJson.error);
 				return false;
 			}
 
@@ -308,7 +299,7 @@
 			if (positionStatus) {
 				setTimeout(async () => {
 					await goto('/positions');
-				}, 3200);
+				}, 2000);
 			}
 		} finally {
 			isSubmitting = false;

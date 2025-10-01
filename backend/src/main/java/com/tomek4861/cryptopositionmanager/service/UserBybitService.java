@@ -70,7 +70,6 @@ public class UserBybitService {
         };
         GenericResponse<CurrentOpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
         CurrentOpenPositionsResponse result = response.getResult();
-        result.setSuccess(true);
         result.getPositionDTOList().forEach(
                 position -> position.setId(generatePositionID(position)
                 )
@@ -95,11 +94,7 @@ public class UserBybitService {
 
         GenericResponse<CurrentOpenOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
 
-        CurrentOpenOrdersResponse result = response.getResult();
-        result.setSuccess(true);
-
-
-        return result;
+        return response.getResult();
     }
 
     private String generatePositionID(CurrentOpenPositionsResponse.OpenPositionDTO position) {
@@ -112,7 +107,7 @@ public class UserBybitService {
         return uuid.toString();
     }
 
-    public StandardResponse createOrder(TradeOrderRequest request) {
+    public StandardResponse<Void> createOrder(TradeOrderRequest request) {
         try {
 
 
@@ -124,21 +119,19 @@ public class UserBybitService {
 
             GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
             System.out.println(apiResponse);
-            StandardResponse standardResponse;
             if (apiResponse.getRetCode() == 0) {
-                standardResponse = new StandardResponse(true);
+                return StandardResponse.success();
             } else {
-                standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
+                return StandardResponse.error(apiResponse.getRetMsg());
             }
 
-            return standardResponse;
         } catch (Exception e) {
-            return new StandardResponse(false, "Failed to create order: " + e.getMessage());
+            return StandardResponse.error("Failed to create order: " + e.getMessage());
         }
     }
 
 
-    public StandardResponse changeLeverageForTicker(ChangeLeverageRequest request) {
+    public StandardResponse<Void> changeLeverageForTicker(ChangeLeverageRequest request) {
         BybitApiPositionRestClient positionClient = this.clientFactory.newPositionRestClient();
 
         PositionDataRequest setLeverageRequest = PositionDataRequest.builder()
@@ -153,15 +146,11 @@ public class UserBybitService {
         TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
         };
         GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
-        StandardResponse standardResponse;
         if (apiResponse.getRetCode() == 0) {
-            standardResponse = new StandardResponse(true);
+            return StandardResponse.success();
         } else {
-            standardResponse = new StandardResponse(false, apiResponse.getRetMsg());
+            return StandardResponse.error(apiResponse.getRetMsg());
         }
-
-        return standardResponse;
-
 
     }
 
@@ -187,7 +176,7 @@ public class UserBybitService {
 
     }
 
-    public StandardResponse cancelPendingOrder(CancelPendingOrderRequest request) {
+    public StandardResponse<Void> cancelPendingOrder(CancelPendingOrderRequest request) {
         try {
             BybitApiTradeRestClient client = this.clientFactory.newTradeRestClient();
 
@@ -204,13 +193,13 @@ public class UserBybitService {
             GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
 
             if (apiResponse.getRetCode() == 0) {
-                return new StandardResponse(true);
+                return StandardResponse.success();
             } else {
-                return new StandardResponse(false, apiResponse.getRetMsg());
+                return StandardResponse.error(apiResponse.getRetMsg());
             }
 
         } catch (Exception e) {
-            return new StandardResponse(false, "Failed to cancel order: " + e.getMessage());
+            return StandardResponse.error("Failed to cancel order: " + e.getMessage());
         }
     }
 

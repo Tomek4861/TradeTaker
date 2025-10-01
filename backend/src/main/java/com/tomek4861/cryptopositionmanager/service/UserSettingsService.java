@@ -80,7 +80,7 @@ public class UserSettingsService {
 
         String key = (apiKeyEntity != null) ? apiKeyEntity.getKey() : null;
 
-        return new AllSettingsResponse(true, key, riskPercent);
+        return new AllSettingsResponse(key, riskPercent);
     }
 
 

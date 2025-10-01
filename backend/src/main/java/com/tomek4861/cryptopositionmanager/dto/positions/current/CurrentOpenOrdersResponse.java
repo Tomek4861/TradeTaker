@@ -23,8 +23,6 @@ public class CurrentOpenOrdersResponse {
 
     @JsonProperty("list")
     private List<ExchangeOrderDTO> ordersList;
-    private boolean success;
-    private String error;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data

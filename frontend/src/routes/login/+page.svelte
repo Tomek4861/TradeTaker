@@ -2,6 +2,7 @@
 	import { API_BE_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
+	import { apiFetch } from '$lib/api.js';
 
 
 	let isSubmitting = false;
@@ -15,19 +16,13 @@
 		const url = '/auth/login';
 
 		try {
-			const response = await fetch(url, {
+			const responseJson = await apiFetch(url, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ username, password })
 			});
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				const errorMessage = errorData[0] || 'An unknown error occurred.';
-				throw new Error(errorMessage);
-			}
 
-			const data = await response.json();
 			username = '';
 			password = '';
 

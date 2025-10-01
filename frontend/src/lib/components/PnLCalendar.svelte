@@ -1,5 +1,6 @@
 <script>
 	import { showErrorToast } from '$lib/toasts.js';
+	import { apiFetch } from '$lib/api.js';
 
 	let monthlyData = {};
 	let isLoading = true;
@@ -21,24 +22,23 @@
 
 
 		try {
-			const response = await fetch(url, {
+			const responseJson = await apiFetch(url, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
 
-			const responseJson = await response.json();
 
 
 			if (!responseJson.success) {
-								showErrorToast(responseJson.message);
+					 showErrorToast(responseJson.message);
 				return;
 			}
 
 			const parsedData = {};
 
-			if (responseJson && responseJson.data) {
+			if (responseJson.data) {
 				responseJson.data.forEach((item) => {
 					parsedData[item.date] = item.pnl;
 				});

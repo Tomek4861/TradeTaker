@@ -1,6 +1,7 @@
 <script>
 	import TradingViewWidget from '$lib/components/TradingViewWidget.svelte';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
+	import { apiFetch } from '$lib/api.js';
 
 
 	export let position;
@@ -49,15 +50,14 @@
 				ticker: position.ticker,
 				size: position.quantity
 			};
-			const response = await fetch('/api/positions/close', {
+			const responseJson = await apiFetch('/api/positions/close', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			});
-			const result = await response.json();
 
-			if (!result.success) {
-				showErrorToast(result.error || 'Failed to close position.');
+			if (!responseJson.success) {
+				showErrorToast(responseJson.error || 'Failed to close position.');
 				return;
 			}
 			showSuccessToast('Position closed successfully!');

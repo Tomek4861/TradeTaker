@@ -38,14 +38,14 @@ public class TradingOrchestrationService {
     private final ClosedPositionRepository closedPositionRepository;
 
 
-    public StandardResponse openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
+    public StandardResponse<Void> openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
         System.out.println(request);
 
         System.out.println(request.getStopLoss().toPlainString());
 
         ApiKey apiKey = getApiKeyForCurrentUser();
         if (apiKey == null) {
-            return new StandardResponse(false, "API key not configured.");
+            return StandardResponse.error("API key not set");
         }
         UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
@@ -56,7 +56,7 @@ public class TradingOrchestrationService {
 
         Optional<BigDecimal> qtyStepOpt = fetchQtyStep(request.getTicker());
         if (qtyStepOpt.isEmpty()) {
-            return new StandardResponse(false, "Failed to fetch Qty Step. Probably invalid ticker");
+            return StandardResponse.error("Failed to fetch Qty Step. Probably invalid ticker");
         }
         BigDecimal qtyStep = qtyStepOpt.get();
 
@@ -64,18 +64,17 @@ public class TradingOrchestrationService {
 
 
         if (areAnyTPs && tradeType.equals(TradeOrderType.LIMIT)) {
-            return new StandardResponse(false, "Cannot set take profit levels for limit order");
-
+            return StandardResponse.error("Cannot set take profit levels for limit order");
         }
 
         if (areAnyTPs) {
             if (!validatePercentageSum(request.getTakeProfitLevels())) {
-                return new StandardResponse(false, "Take Profit levels percentage does not sum to 100%");
+                return StandardResponse.error("Take Profit levels percentage does not sum to 100%");
             }
             try {
                 calculatedTakeProfitList = convertTakeProfitsToQuantities(request.getTakeProfitLevels(), finalOrderSize);
             } catch (CalculationException e) {
-                return new StandardResponse(false, e.getMessage());
+                return StandardResponse.error(e.getMessage());
             }
         }
 
@@ -90,7 +89,7 @@ public class TradingOrchestrationService {
                 .stopLoss(request.getStopLoss().toPlainString())
                 .build();
 
-        StandardResponse openPositionResponse = userBybitService.createOrder(openPositionRequest);
+        StandardResponse<Void> openPositionResponse = userBybitService.createOrder(openPositionRequest);
 
 
         boolean positionOpenedSuccessfully = openPositionResponse.isSuccess();
@@ -117,21 +116,21 @@ public class TradingOrchestrationService {
                         .reduceOnly(true)
                         .build();
 
-                StandardResponse tpResponse = userBybitService.createOrder(takeProfitRequest);
+                StandardResponse<Void> tpResponse = userBybitService.createOrder(takeProfitRequest);
                 if (!tpResponse.isSuccess()) {
-                    return new StandardResponse(false, "Position opened, but failed to set Take Profit: " + tpResponse.getError());
+                    return StandardResponse.error("Position opened, but failed to set Take Profit: " + tpResponse.getError());
                 }
             }
         }
-        return new StandardResponse(true);
+        return StandardResponse.success();
 
     }
 
 
-    public StandardResponse closePositionByMarket(ClosePositionRequest request, User user) {
+    public StandardResponse<Void> closePositionByMarket(ClosePositionRequest request, User user) {
         ApiKey apiKey = getApiKeyForCurrentUser();
         if (apiKey == null) {
-            return new StandardResponse(false, "API key not configured.");
+            return StandardResponse.error("API key not configured");
         }
         UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
@@ -162,7 +161,7 @@ public class TradingOrchestrationService {
                 Thread.sleep(fetchDelayMs); // bad practise ik. :(
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return new StandardResponse(false, "Operation interrupted");
+                return StandardResponse.error("Operation interrupted");
             }
             Optional<PositionCloseDTO.ClosedPnlEntry> positionCloseDataOpt = userBybitService.getLatestPositionDataForTicker(request.getTicker());
             if (positionCloseDataOpt.isEmpty()) {
@@ -183,10 +182,10 @@ public class TradingOrchestrationService {
 
             closedPositionRepository.save(closedPosition);
 
-            return new StandardResponse(true);
+            return StandardResponse.success();
         }
 
-        return new StandardResponse(false, "Position was closed, but failed to fetch and save closing data in time");
+        return StandardResponse.error("Position was closed, but failed to fetch and save closing data in time");
 
     }
 

@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PreviewPositionResponse {
-    private Boolean success;
     private BigDecimal leverage;
     private BigDecimal requiredMargin;
     private BigDecimal potentialLoss;
@@ -22,7 +21,6 @@ public class PreviewPositionResponse {
     private String error;
 
     public PreviewPositionResponse(String error) {
-        this.success = false;
         this.error = error;
     }
 

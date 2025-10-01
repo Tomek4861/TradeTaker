@@ -64,7 +64,6 @@ public class PositionCalculatorService {
 
 
             return new PreviewPositionResponse(
-                    true,
                     result.leverage().setScale(0, RoundingMode.DOWN),
                     result.requiredMargin().setScale(2, RoundingMode.HALF_UP),
                     result.riskAmount().setScale(2, RoundingMode.HALF_UP),

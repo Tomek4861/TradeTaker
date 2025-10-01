@@ -2,6 +2,7 @@ package com.tomek4861.cryptopositionmanager.controllers;
 
 
 import com.bybit.api.client.domain.CategoryType;
+import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PublicBybitService;
@@ -37,14 +38,14 @@ public class BybitController {
     }
 
     @GetMapping("/perpetual-tickers")
-    public ResponseEntity<Object> getPerpTickers() {
+    public ResponseEntity<StandardResponse<Object>> getPerpTickers() {
         Object tickers = publicBybitService.getAllPerpetualTickers();
-        return ResponseEntity.ok(tickers);
+        return ResponseEntity.ok(StandardResponse.success(tickers));
 
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<BigDecimal> getAccountBalance(@AuthenticationPrincipal User user) {
+    public ResponseEntity<StandardResponse<BigDecimal>> getAccountBalance(@AuthenticationPrincipal User user) {
         ApiKey apikeyObj = user.getApiKey();
         if (apikeyObj == null) {
             return ResponseEntity.badRequest().build();
@@ -52,18 +53,18 @@ public class BybitController {
         UserBybitService userBybitService = userBybitServiceFactory.create(apikeyObj.getKey(), apikeyObj.getSecret());
         Optional<BigDecimal> balance = userBybitService.getAccountBalance();
         if (balance.isPresent()) {
-            return ResponseEntity.ok(balance.get());
+            return ResponseEntity.ok(StandardResponse.success(balance.get()));
         } else {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping("/ticker-price")
-    public ResponseEntity<BigDecimal> getPriceForTicker(@RequestParam String ticker) {
+    public ResponseEntity<StandardResponse<BigDecimal>> getPriceForTicker(@RequestParam String ticker) {
         Optional<BigDecimal> priceOptional = publicBybitService.getTickerPrice(ticker);
 
         if (priceOptional.isPresent()) {
-            return ResponseEntity.ok(priceOptional.get());
+            return ResponseEntity.ok(StandardResponse.success(priceOptional.get()));
         } else {
             return ResponseEntity.notFound().build();
         }

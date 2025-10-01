@@ -2,6 +2,7 @@
 	import { Motion } from 'svelte-motion';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts';
 	import { page } from '$app/stores';
+	import { apiFetch } from '$lib/api.js';
 
 	export let user = null;
 
@@ -25,13 +26,11 @@
 		event.preventDefault();
 
 		try {
-			const response = await fetch('/auth/logout/', {
-				method: 'POST'
-			});
 
-			if (!response.ok) {
-				throw new Error('Logout failed. Please try again.');
-			}
+
+						const responseJson = await apiFetch('/auth/logout', {
+				method: 'POST',
+			})
 
 			showSuccessToast('Successfully logged out!');
 			setTimeout(500, () => {

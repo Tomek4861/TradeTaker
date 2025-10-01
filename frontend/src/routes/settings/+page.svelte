@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
+	import { apiFetch } from '$lib/api.js';
 
 	const secretPlaceholder = '*'.repeat(40);
 
@@ -13,24 +14,20 @@
 	async function loadData() {
 		isLoading = true;
 		try {
-			const response = await fetch('/api/settings', {
+			const responseJson = await apiFetch('/api/settings', {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			// if (!response.ok) {
-			// 	throw new Error('Failed to fetch settings');
-			// }
-			const data = await response.json();
 
-			if (!data['success']) {
-				showErrorToast(data['message']);
+			if (!responseJson.success) {
+				showErrorToast(responseJson.error);
 				return;
 			}
-			apiKey = data['apiKey'];
+			apiKey = responseJson.data['apiKey'];
 			secretKey = secretPlaceholder;
-			riskPercentage = data['riskPercentage'];
+			riskPercentage = responseJson.data['riskPercentage'];
 
 		} catch (error) {
 			showErrorToast(error.message);
@@ -50,20 +47,16 @@
 				payload.apiKey = apiKey;
 				payload.secretKey = secretKey;
 			}
-			const response = await fetch('/api/settings', {
+			const responseJson = await apiFetch('/api/settings', {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(payload)
 			});
-			// if (!response.ok) {
-			// 	throw new Error('Failed to fetch settings');
-			// }
-			const data = await response.json();
 
-			if (!data['success']) {
-				showErrorToast(data['message']);
+			if (!responseJson['success']) {
+								showErrorToast(responseJson.error);
 				return;
 			}
 			showSuccessToast('Settings saved!');

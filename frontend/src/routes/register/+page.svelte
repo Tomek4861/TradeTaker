@@ -2,6 +2,7 @@
 	import { API_BE_BASE_URL } from '$lib/config.js';
 	import { showErrorToast, showSuccessToast } from '$lib/toasts.js';
 	import { goto } from '$app/navigation';
+	import { apiFetch } from '$lib/api.js';
 
 	let isSubmitting = false;
 	let email = '';
@@ -25,19 +26,13 @@
 		};
 
 		try {
-			const response = await fetch(url, {
+			const responseJson = await apiFetch(url, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			});
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				const errorMessage = errorData['message'] || 'An unknown registration error occurred.';
-				throw new Error(errorMessage);
-			}
 
-			const data = await response.json();
 			email = '';
 			password = '';
 			repeatedPassword = '';
