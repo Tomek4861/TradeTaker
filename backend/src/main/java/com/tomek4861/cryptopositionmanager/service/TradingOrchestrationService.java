@@ -99,13 +99,10 @@ public class TradingOrchestrationService {
         }
 
 
-        // TODO: Add check if the position was filled
-
 
         // add take profits
         if (areAnyTPs) {
             for (var tpLevel : calculatedTakeProfitList) {
-//                BigDecimal tpOrderSize = adjustSizeToQtyStep(new BigDecimal(tpLevel.getSize().toPlainString()), qtyStep);
                 TradeOrderRequest takeProfitRequest = TradeOrderRequest.builder()
                         .category(CategoryType.LINEAR)
                         .symbol(request.getTicker())
@@ -148,7 +145,7 @@ public class TradingOrchestrationService {
 
         // Bybit automatically closes positions reduce-only
 
-        StandardResponse orderResponse = userBybitService.createOrder(closeOrderRequest);
+        StandardResponse<Void> orderResponse = userBybitService.createOrder(closeOrderRequest);
         if (!orderResponse.isSuccess()) {
             return orderResponse;
         }
@@ -231,7 +228,6 @@ public class TradingOrchestrationService {
         CalculatedTakeProfit lastCalculatedTakeProfit = new CalculatedTakeProfit(lastTpLvl.getPrice(), lastTpLvl.getPercentage(), remainingQtyToAllocate);
 
         resultTakeProfits.add(lastCalculatedTakeProfit);
-        System.out.println(resultTakeProfits);
 
         return resultTakeProfits;
     }
