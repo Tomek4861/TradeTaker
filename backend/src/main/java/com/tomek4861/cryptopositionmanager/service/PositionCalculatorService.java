@@ -6,7 +6,10 @@ import com.tomek4861.cryptopositionmanager.dto.positions.preview.CalculationResu
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.takeprofit.TakeProfitLevel;
+import com.tomek4861.cryptopositionmanager.entity.ApiKey;
+import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.exception.CalculationException;
+import com.tomek4861.cryptopositionmanager.exception.NoApiKeyException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +26,14 @@ public class PositionCalculatorService {
     private final UserBybitServiceFactory userBybitServiceFactory;
     private final PositionCalculator positionCalculator;
 
-    public PreviewPositionResponse calculatePositionInfo(PreviewPositionRequest request, String apiKey, String secretKey, BigDecimal riskPercentage) {
-        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey, secretKey);
+    public PreviewPositionResponse calculatePositionInfo(PreviewPositionRequest request, User user) {
+        ApiKey apiKey = user.getApiKey();
+        BigDecimal riskPercentage = user.getRiskPercent();
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            throw new NoApiKeyException(user);
+        }
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
         Optional<BigDecimal> accBalanceOpt = userBybitService.getAccountBalance();
 
         if (accBalanceOpt.isEmpty()) {

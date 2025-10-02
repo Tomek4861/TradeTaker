@@ -122,9 +122,17 @@ public class ApiExceptionHandler {
         return body(HttpStatus.UNAUTHORIZED, "Invalid username or password");
     }
 
+    @ExceptionHandler(NoApiKeyException.class)
+    public ResponseEntity<StandardResponse<Void>> handleNoApiKey(NoApiKeyException ex) {
+        logger.warn("No api key", ex);
+        return body(HttpStatus.BAD_REQUEST, "No API key set");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandardResponse<Void>> handleOther(Exception ex) {
         logger.error("Unhandled exception", ex);
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
     }
+
+
 }

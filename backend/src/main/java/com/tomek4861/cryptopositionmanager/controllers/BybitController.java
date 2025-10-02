@@ -3,10 +3,9 @@ package com.tomek4861.cryptopositionmanager.controllers;
 
 import com.bybit.api.client.domain.CategoryType;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
-import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.PublicBybitService;
-import com.tomek4861.cryptopositionmanager.service.UserBybitService;
+import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
 import com.tomek4861.cryptopositionmanager.service.UserBybitServiceFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +25,7 @@ public class BybitController {
 
     private final PublicBybitService publicBybitService;
     private final UserBybitServiceFactory userBybitServiceFactory;
+    private final TradingOrchestrationService tradingOrchestrationService;
 
 
     @GetMapping("/tickers")
@@ -46,12 +46,7 @@ public class BybitController {
 
     @GetMapping("/balance")
     public ResponseEntity<StandardResponse<BigDecimal>> getAccountBalance(@AuthenticationPrincipal User user) {
-        ApiKey apikeyObj = user.getApiKey();
-        if (apikeyObj == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        UserBybitService userBybitService = userBybitServiceFactory.create(apikeyObj.getKey(), apikeyObj.getSecret());
-        Optional<BigDecimal> balance = userBybitService.getAccountBalance();
+        Optional<BigDecimal> balance = tradingOrchestrationService.getAccountBalance(user);
         if (balance.isPresent()) {
             return ResponseEntity.ok(StandardResponse.success(balance.get()));
         } else {

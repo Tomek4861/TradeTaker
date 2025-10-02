@@ -10,9 +10,11 @@ import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTP
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.preview.PreviewPositionResponse;
 import com.tomek4861.cryptopositionmanager.dto.stats.ClosedPositionDTO;
-import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.User;
-import com.tomek4861.cryptopositionmanager.service.*;
+import com.tomek4861.cryptopositionmanager.service.PositionCalculatorService;
+import com.tomek4861.cryptopositionmanager.service.StatsService;
+import com.tomek4861.cryptopositionmanager.service.TradingOrchestrationService;
+import com.tomek4861.cryptopositionmanager.service.UserBybitServiceFactory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -41,18 +42,9 @@ public class PositionController {
 
         System.out.println("Received preview position request: " + request);
 
-        ApiKey apiKey = user.getApiKey();
-        BigDecimal riskPercentage = user.getRiskPercent();
-
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body(StandardResponse.error("Api key not set"));
-        }
-
         PreviewPositionResponse response = positionCalculatorService.calculatePositionInfo(
                 request,
-                apiKey.getKey(),
-                apiKey.getSecret(),
-                riskPercentage
+                user
         );
 
         return ResponseEntity.ok(StandardResponse.success(response));
@@ -60,29 +52,14 @@ public class PositionController {
 
     @GetMapping("/open")
     public ResponseEntity<StandardResponse<CurrentOpenPositionsResponse>> getOpenPositions(@AuthenticationPrincipal User user) {
-        ApiKey apiKey = user.getApiKey();
-
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body(StandardResponse.error("Api key not set"));
-        }
-        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
-        CurrentOpenPositionsResponse openPositions = userBybitService.getOpenPositions();
-
+        CurrentOpenPositionsResponse openPositions = tradingOrchestrationService.getOpenPositionForUser(user);
         return ResponseEntity.ok(StandardResponse.success(openPositions));
 
     }
 
     @GetMapping("/orders")
     public ResponseEntity<StandardResponse<CurrentOpenOrdersResponse>> getOpenOrders(@AuthenticationPrincipal User user) {
-        ApiKey apiKey = user.getApiKey();
-
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-
-            return ResponseEntity.badRequest().body(StandardResponse.error("Api key not set"));
-        }
-
-        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
-        CurrentOpenOrdersResponse openOrders = userBybitService.getOpenOrders();
+        CurrentOpenOrdersResponse openOrders = tradingOrchestrationService.getOpenOrdersForUser(user);
         return ResponseEntity.ok(StandardResponse.success(openOrders));
     }
 
@@ -101,15 +78,7 @@ public class PositionController {
 
     @PostMapping("/cancel-order")
     public ResponseEntity<StandardResponse<Void>> cancelOrder(@AuthenticationPrincipal User user, @Valid @RequestBody CancelPendingOrderRequest request) {
-        ApiKey apiKey = user.getApiKey();
-
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            StandardResponse<Void> errResp = StandardResponse.error("API key not set");
-            return ResponseEntity.badRequest().body(errResp);
-        }
-
-        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
-        var resp = userBybitService.cancelPendingOrder(request);
+        var resp = tradingOrchestrationService.cancelOrderForUser(user, request);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
         } else {
@@ -121,13 +90,7 @@ public class PositionController {
 
     @PostMapping("/leverage")
     public ResponseEntity<StandardResponse<Void>> changeLeverage(@AuthenticationPrincipal User user, @Valid @RequestBody ChangeLeverageRequest request) {
-        ApiKey apiKey = user.getApiKey();
-
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body(StandardResponse.error("API key not set"));
-        }
-        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
-        var resp = userBybitService.changeLeverageForTicker(request);
+        var resp = tradingOrchestrationService.changeLeverageForTicker(user, request);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
         } else {
@@ -139,13 +102,8 @@ public class PositionController {
 
     @PostMapping("/open")
     public ResponseEntity<StandardResponse<Void>> openNewPosition(@AuthenticationPrincipal User user, @Valid @RequestBody OpenPositionWithTPRequest request) {
-        ApiKey apiKey = user.getApiKey();
 
-        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
-            return ResponseEntity.badRequest().body(StandardResponse.error("API key not set"));
-        }
-
-        var resp = tradingOrchestrationService.openPositionWithTakeProfits(request);
+        var resp = tradingOrchestrationService.openPositionWithTakeProfits(request, user);
         if (resp.isSuccess()) {
             return ResponseEntity.ok(resp);
         } else {

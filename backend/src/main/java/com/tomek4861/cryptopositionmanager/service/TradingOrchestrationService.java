@@ -7,19 +7,22 @@ import com.bybit.api.client.domain.trade.Side;
 import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.tomek4861.cryptopositionmanager.domain.position.takeprofit.CalculatedTakeProfit;
 import com.tomek4861.cryptopositionmanager.dto.exchange.InstrumentEntryDTO;
+import com.tomek4861.cryptopositionmanager.dto.leverage.ChangeLeverageRequest;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.cancel.CancelPendingOrderRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.ClosePositionRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.close.PositionCloseDTO;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenOrdersResponse;
+import com.tomek4861.cryptopositionmanager.dto.positions.current.CurrentOpenPositionsResponse;
 import com.tomek4861.cryptopositionmanager.dto.positions.open.OpenPositionWithTPRequest;
 import com.tomek4861.cryptopositionmanager.dto.positions.takeprofit.TakeProfitLevel;
 import com.tomek4861.cryptopositionmanager.entity.ApiKey;
 import com.tomek4861.cryptopositionmanager.entity.ClosedPosition;
 import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.exception.CalculationException;
+import com.tomek4861.cryptopositionmanager.exception.NoApiKeyException;
 import com.tomek4861.cryptopositionmanager.repository.ClosedPositionRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,15 +41,13 @@ public class TradingOrchestrationService {
     private final ClosedPositionRepository closedPositionRepository;
 
 
-    public StandardResponse<Void> openPositionWithTakeProfits(OpenPositionWithTPRequest request) {
+    public StandardResponse<Void> openPositionWithTakeProfits(OpenPositionWithTPRequest request, User user) {
         System.out.println(request);
 
         System.out.println(request.getStopLoss().toPlainString());
 
-        ApiKey apiKey = getApiKeyForCurrentUser();
-        if (apiKey == null) {
-            return StandardResponse.error("API key not set");
-        }
+        ApiKey apiKey = getApiKeyForUser(user);
+
         UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
         TradeOrderType tradeType = request.getEntryPrice() != null ? TradeOrderType.LIMIT : TradeOrderType.MARKET;
@@ -99,7 +100,6 @@ public class TradingOrchestrationService {
         }
 
 
-
         // add take profits
         if (areAnyTPs) {
             for (var tpLevel : calculatedTakeProfitList) {
@@ -125,10 +125,8 @@ public class TradingOrchestrationService {
 
 
     public StandardResponse<Void> closePositionByMarket(ClosePositionRequest request, User user) {
-        ApiKey apiKey = getApiKeyForCurrentUser();
-        if (apiKey == null) {
-            return StandardResponse.error("API key not configured");
-        }
+        ApiKey apiKey = getApiKeyForUser(user);
+
         UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
 
         System.out.println(request);
@@ -186,12 +184,6 @@ public class TradingOrchestrationService {
 
     }
 
-    private ApiKey getApiKeyForCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        return userSettingsService.getApiKey(currentUsername);
-    }
-
     private boolean validatePercentageSum(List<TakeProfitLevel> levels) {
         BigDecimal totalPercentage = levels.stream()
                 .map(TakeProfitLevel::getPercentage)
@@ -244,6 +236,54 @@ public class TradingOrchestrationService {
         } else {
             return Optional.empty();
         }
+
+    }
+
+    public CurrentOpenPositionsResponse getOpenPositionForUser(User user) {
+        ApiKey apiKey = getApiKeyForUser(user);
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        return userBybitService.getOpenPositions();
+
+    }
+
+    public CurrentOpenOrdersResponse getOpenOrdersForUser(User user) {
+        ApiKey apiKey = getApiKeyForUser(user);
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        return userBybitService.getOpenOrders();
+
+    }
+
+    public StandardResponse<Void> cancelOrderForUser(User user, CancelPendingOrderRequest request) {
+        ApiKey apiKey = getApiKeyForUser(user);
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        return userBybitService.cancelPendingOrder(request);
+
+    }
+
+    public StandardResponse<Void> changeLeverageForTicker(User user, ChangeLeverageRequest request) {
+        ApiKey apiKey = getApiKeyForUser(user);
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        return userBybitService.changeLeverageForTicker(request);
+
+    }
+
+    public Optional<BigDecimal> getAccountBalance(User user) {
+        ApiKey apiKey = getApiKeyForUser(user);
+
+        UserBybitService userBybitService = userBybitServiceFactory.create(apiKey.getKey(), apiKey.getSecret());
+        return userBybitService.getAccountBalance();
+
+    }
+
+    private ApiKey getApiKeyForUser(User user) {
+        ApiKey apiKey = user.getApiKey();
+        if (apiKey == null || apiKey.getKey() == null || apiKey.getSecret() == null) {
+            throw new NoApiKeyException(user);
+        }
+        return apiKey;
 
     }
 }
