@@ -1,12 +1,12 @@
 import { json } from '@sveltejs/kit';
 
-export async function POST({ request, cookies, fetch }) {
+export async function POST({  cookies  }) {
 	try {
 		cookies.delete('auth_token', { path: '/' });
 
-		return json({ success: true, message: 'Logged out successfully' });
+				return json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		console.error('Logout error:', error);
-		return json({ success: false, message: 'An internal error occurred' }, { status: 500 });
+		return json({ success: false, error: 'An internal error occurred' }, { status: 500 });
 	}
 }

@@ -2,15 +2,16 @@ import { json } from '@sveltejs/kit';
 import { API_BE_BASE_URL } from '$lib/config.js';
 import { getAuthHeader } from '$lib/auth.js';
 
-async function proxyRequest(event, targetPath) {
+async function proxyRequest(event, targetPath, includeAuth) {
 	const { request, cookies, fetch, url } = event;
 
 	try {
 		const headers = {
 			'Content-Type': 'application/json',
-			...getAuthHeader(cookies)
 		};
-
+		if (includeAuth) {
+			Object.assign(headers, getAuthHeader(cookies));
+		}
 		const options = {
 			method: request.method,
 			headers: headers
@@ -49,13 +50,13 @@ async function proxyRequest(event, targetPath) {
 	}
 }
 
-export async function proxyPost(event, targetPath) {
-	return proxyRequest(event, targetPath);
+export async function proxyPost(event, targetPath, includeAuth = true) {
+	return proxyRequest(event, targetPath, includeAuth);
 }
 
-export async function proxyGet(event, targetPath) {
-	return proxyRequest(event, targetPath);
+export async function proxyGet(event, targetPath, includeAuth = true) {
+	return proxyRequest(event, targetPath, includeAuth);
 }
-export async function proxyPut(event, targetPath) {
-	return proxyRequest(event, targetPath);
+export async function proxyPut(event, targetPath, includeAuth = true) {
+	return proxyRequest(event, targetPath, includeAuth);
 }

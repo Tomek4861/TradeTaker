@@ -1,33 +1,44 @@
 import { json } from '@sveltejs/kit';
-import { API_BE_BASE_URL } from '$lib/config.js';
 import { setAuthToken } from '$lib/auth.js';
+import { proxyPost } from '$lib/apiProxy.js';
 
-export async function POST({ request, cookies, fetch }) {
+const targetPath = '/auth/login';
+
+export async function POST(event) {
 	try {
-		const body = await request.json();
+		const resp = await proxyPost(event, targetPath, false);
 
-		const response = await fetch(`${API_BE_BASE_URL}/auth/login`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(body)
-		});
-		console.log('Response ' + response.status);
+		const status = resp.status;
+		const contentType = resp.headers.get('content-type') ?? 'text/plain';
 
-		if (!response.ok) {
-			return json({ success: false, message: 'Invalid login data' }, { status: response.status });
+		const raw = await resp.text();
+
+		let payload = null;
+		try {
+			payload = JSON.parse(raw);
+		} catch {
+			// payload null
 		}
 
-		const data = await response.json();
-		const token = data['accessToken'];
+		const token = payload?.data;
 		if (token) {
-			setAuthToken(cookies, token);
-
-			return json({ success: true, message: 'Login successful' });
-		} else {
-			return json({ success: false, message: 'Token not found in response' }, { status: 500 });
+			setAuthToken(event.cookies, token);
+			console.log('Set auth token');
 		}
+
+		if (payload) {
+			return json(payload, { status });
+		}
+
+		return new Response(raw, {
+			status,
+			headers: { 'content-type': contentType }
+		});
 	} catch (error) {
 		console.error('Login error:', error);
-		return json({ success: false, message: 'An internal error occurred' }, { status: 500 });
+		return json(
+			{ success: false, message: 'Failed to obtain token from response' },
+			{ status: 500 }
+		);
 	}
 }
