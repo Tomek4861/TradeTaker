@@ -1,5 +1,6 @@
 package com.tomek4861.cryptopositionmanager.exception;
 
+import com.bybit.api.client.exception.BybitApiException;
 import com.tomek4861.cryptopositionmanager.dto.other.StandardResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -126,6 +127,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandardResponse<Void>> handleNoApiKey(NoApiKeyException ex) {
         logger.warn("No api key", ex);
         return body(HttpStatus.BAD_REQUEST, "No API key set");
+    }
+
+    @ExceptionHandler(BybitApiException.class)
+    public ResponseEntity<StandardResponse<Void>> handleBybitApiError(BybitApiException ex) {
+        logger.warn("Bybit API error", ex);
+        return body(HttpStatus.INTERNAL_SERVER_ERROR, "Bybit API error");
     }
 
     @ExceptionHandler(Exception.class)

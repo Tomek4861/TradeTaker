@@ -23,8 +23,6 @@ public class UserSettingsService {
     @Transactional
     public void saveApiKey(String username, ApiKeyRequest apiKeyRequest) {
 
-        // todo:  keep the key stored encrypted
-
         User user = findUserByUsername(username);
 
         String apiKey = apiKeyRequest.getApiKey();
@@ -48,7 +46,6 @@ public class UserSettingsService {
         ApiKey apiKeyEntity = user.getApiKey();
         if (apiKeyEntity == null) {
             apiKeyEntity = new ApiKey();
-            user.setApiKey(apiKeyEntity);
         }
 
         if (requestApiKey != null) {
