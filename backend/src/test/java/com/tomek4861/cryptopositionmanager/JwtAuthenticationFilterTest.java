@@ -112,7 +112,7 @@ class JwtAuthenticationFilterTest {
 
         when(jwtService.extractUsername("bad.token")).thenReturn("bob");
         when(userDetailsService.loadUserByUsername("bob")).thenReturn(u);
-        when(jwtService.isTokenValid("bad.token", u)).thenReturn(false); // will trigger JwtException path in filter
+        when(jwtService.isTokenValid("bad.token", u)).thenReturn(false);
 
         // entryPoint should be called with InsufficientAuthenticationException
         doNothing().when(entryPoint).commence(

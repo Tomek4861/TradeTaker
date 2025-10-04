@@ -47,7 +47,7 @@ class ApiExceptionHandlerIntegrationTest {
         when(jwtService.isTokenValid(anyString(), (UserDetails) org.mockito.ArgumentMatchers.any())).thenReturn(true);
     }
 
-    // 1) body @Valid -> 400 + field messages (MethodArgumentNotValidException)
+    // 1) body @Valid -> 400 + field messages
     @Test
     void errors_bodyValidation_returns400_withFieldMessages() throws Exception {
         // empty JSON -> missing required fields
@@ -65,7 +65,7 @@ class ApiExceptionHandlerIntegrationTest {
                 .andExpect(jsonPath("$.error", containsString("stopLoss")));
     }
 
-    // 2) @RequestParam constraints -> 400 + details (HandlerMethodValidationException)
+    // 2) @RequestParam constraints -> 400 + details
     @Test
     void errors_paramValidation_returns400_withDetails() throws Exception {
         // year=2019 (<2020) and month=13 (>12)

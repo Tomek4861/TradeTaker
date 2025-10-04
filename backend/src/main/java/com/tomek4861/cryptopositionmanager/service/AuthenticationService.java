@@ -23,7 +23,7 @@ public class AuthenticationService {
 
 
     public User register(RegisterRequest request) {
-        var newUser = new User();
+        User newUser = new User();
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setEmail(request.getEmail());
         newUser.setUsername(request.getUsername());

@@ -7,6 +7,7 @@ import com.tomek4861.cryptopositionmanager.dto.register.RegisterRequest;
 import com.tomek4861.cryptopositionmanager.entity.User;
 import com.tomek4861.cryptopositionmanager.service.AuthenticationService;
 import com.tomek4861.cryptopositionmanager.service.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,14 +24,14 @@ public class AuthenticationController {
     private final AuthenticationService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<StandardResponse<String>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<StandardResponse<String>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String token = authService.login(loginRequest);
         return ResponseEntity.ok(StandardResponse.success(token));
     }
 
 
     @PostMapping("/register")
-    public ResponseEntity<StandardResponse<String>> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<StandardResponse<String>> register(@Valid @RequestBody RegisterRequest registerRequest) {
 
         User newUser = authService.register(registerRequest);
         String token = jwtService.generateToken(newUser);
