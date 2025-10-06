@@ -28,7 +28,7 @@
 		try {
 
 
-						const responseJson = await apiFetch('/auth/logout', {
+				await apiFetch('/auth/logout', {
 				method: 'POST',
 			})
 
@@ -69,12 +69,21 @@
 		node.addEventListener('mouseenter', refNode);
 		return {};
 	};
+
+	const titleWords = ['Trade', 'Taker'];
 </script>
 
 <nav>
 	<div class="md:hidden">
 		<div class="flex justify-between mb-8 border-b border-b-zinc-800 pb-4">
-			<h1 class="text-3xl font-bold">Crypto Manager</h1>
+			<Motion
+				initial={{ opacity: 0, x: -20 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ duration: 0.5 }}
+				let:motion
+			>
+				<h1 use:motion class="text-3xl font-bold gradient-text">Trade Taker</h1>
+			</Motion>
 			<input type="checkbox" id="menu-toggle" class="peer hidden" />
 			<label for="menu-toggle" class="z-50 cursor-pointer border rounded px-2 py-1 text-2xl flex items-center">
 				&#9776;
@@ -105,7 +114,25 @@
 	</div>
 
 	<div class="hidden md:block">
-		<h1 class="text-4xl font-bold mb-3 text-center">Crypto Manager</h1>
+		<Motion
+			initial={{ opacity: 0, y: -30 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.6, ease: "easeOut" }}
+			let:motion
+		>
+			<h1 use:motion class="text-5xl font-bold mb-3 pb-2 text-center gradient-text-animated">
+				{#each titleWords as word, i}
+					<Motion
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5, delay: i * 0.15 }}
+						let:motion
+					>
+						<span use:motion class="inline-block mr-0">{word}</span>
+					</Motion>
+				{/each}
+			</h1>
+		</Motion>
 		<div class="py-10 w-full">
 			<ul
 				on:mouseleave={setActiveIndicator}
@@ -138,3 +165,41 @@
 		</div>
 	</div>
 </nav>
+
+<style>
+	.gradient-text {
+		background: linear-gradient(135deg, #1d4ed8 0%, #06b6d4 50%, #1d4ed8 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		filter: drop-shadow(0 0 20px rgba(29, 78, 216, 0.3));
+	}
+
+	.gradient-text-animated {
+		background: linear-gradient(
+			90deg,
+			#1e40af 0%,
+			#1d4ed8 20%,
+			#06b6d4 40%,
+			#71717a 60%,
+			#06b6d4 80%,
+			#1d4ed8 100%
+		);
+		background-size: 200% auto;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		animation: gradient-shift 5s ease infinite;
+		filter: drop-shadow(0 0 30px rgba(29, 78, 216, 0.5));
+		letter-spacing: 0.5px;
+	}
+
+	@keyframes gradient-shift {
+		0%, 100% {
+			background-position: 0 center;
+		}
+		50% {
+			background-position: 100% center;
+		}
+	}
+</style>

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Crypto Position Manager.iml" filepath="$PROJECT_DIR$/.idea/Crypto Position Manager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/TradeTaker.iml" filepath="$PROJECT_DIR$/.idea/TradeTaker.iml" />
     </modules>
   </component>
 </project>

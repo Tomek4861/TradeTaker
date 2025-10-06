@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.tomek4861</groupId>
-    <artifactId>cryptopositionmanager</artifactId>
+    <artifactId>tradetaker</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>cryptopositionmanager</name>
+    <name>Trade Taker</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>
