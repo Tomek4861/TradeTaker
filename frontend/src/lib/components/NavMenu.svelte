@@ -33,9 +33,9 @@
 			})
 
 			showSuccessToast('Successfully logged out!');
-			setTimeout(500, () => {
-				window.reload();
-			});
+						setTimeout(() => {
+								window.location.reload();
+			}, 500);
 		} catch (error) {
 			showErrorToast(error.message);
 		}
@@ -120,7 +120,7 @@
 			transition={{ duration: 0.6, ease: "easeOut" }}
 			let:motion
 		>
-			<h1 use:motion class="text-5xl font-bold mb-3 pb-2 text-center gradient-text-animated">
+			<h1 use:motion class="text-5xl font-bold mb-2 pb-2 text-center gradient-text-animated">
 				{#each titleWords as word, i}
 					<Motion
 						initial={{ opacity: 0, y: -20 }}
@@ -142,7 +142,7 @@
 					<li
 						use:positionMotion
 						bind:this={navItemNodes[i]}
-						class="relative z-10 block cursor-pointer px-3 py-2 text-white md:px-5 md:py-3"
+						class="relative z-10 block cursor-pointer px-3 py-2 text-white md:px-7 md:py-3"
 					>
 						{#if item.name === 'Log out'}
 							<button class="text-lg" on:click|preventDefault={handleLogout}>{item.name}</button>
@@ -168,7 +168,7 @@
 
 <style>
 	.gradient-text {
-		background: linear-gradient(135deg, #1d4ed8 0%, #06b6d4 50%, #1d4ed8 100%);
+		background: linear-gradient(135deg, #1d4ed8 0%, #d9caca 50%, #1d4ed8 100%);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
@@ -180,9 +180,9 @@
 			90deg,
 			#1e40af 0%,
 			#1d4ed8 20%,
-			#06b6d4 40%,
+      #d9caca 40%,
 			#71717a 60%,
-			#06b6d4 80%,
+			#d9caca 80%,
 			#1d4ed8 100%
 		);
 		background-size: 200% auto;
@@ -191,7 +191,7 @@
 		background-clip: text;
 		animation: gradient-shift 5s ease infinite;
 		filter: drop-shadow(0 0 30px rgba(29, 78, 216, 0.5));
-		letter-spacing: 0.5px;
+		letter-spacing: 2px;
 	}
 
 	@keyframes gradient-shift {
