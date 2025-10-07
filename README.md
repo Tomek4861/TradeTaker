@@ -1,10 +1,10 @@
 # Trade Taker
 
-**Trade Taker** is a web app that addresses a common challenge for active crypto traders: managing risk effectively.
+**Trade Taker** is a web app that addresses a common challenge for crypto traders: managing risk effectively.
 It automates position sizing, calculates risk/reward, and provides performance
-analytics  — with a responsive, mobile-friendly UI. Built with a modern Java/Spring backend and a reactive SvelteKit frontend.
+analytics  — with a responsive, mobile-friendly UI. Built on a modern Java/Spring backend and a reactive SvelteKit frontend.
 
-**Demo video:** *[Add your short walkthrough link here]*
+**Demo video:** *[Here Video]*
 
 ## Key Features
 
@@ -22,8 +22,7 @@ analytics  — with a responsive, mobile-friendly UI. Built with a modern Java/S
 
 
 2. **Security & Account Integration**
-    * **Authentication:** Secure user management featuring local JWT-based authentication and one-click
-      sign-in via Google (OAuth2).
+    * **Authentication:** Secure JWT auth with one-click Google OAuth2.
     * **Encrypted API Key Storage:** Bybit secrets encrypted at rest (AES), never stored in plain text.
 
 3. **Performance Analytics**
@@ -38,7 +37,7 @@ analytics  — with a responsive, mobile-friendly UI. Built with a modern Java/S
 - **Backend:** Java 21, Spring Boot 3, Spring Security (JWT + OAuth2), JPA/Hibernate, Spring Cache
 - **Frontend:** SvelteKit, TailwindCSS, svelte-motion
 - **Databases:** PostgreSQL, H2 (tests)
-- **Tests:** JUnit 5, Mockito, MockMvc
+- **Tests:** JUnit 5
 - **API & SDK:** Bybit Official Java SDK, TradingView Charts
 
 ## Screenshots
