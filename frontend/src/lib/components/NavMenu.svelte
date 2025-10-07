@@ -133,7 +133,7 @@
 				{/each}
 			</h1>
 		</Motion>
-		<div class="py-10 w-full">
+		<div class="pb-6 pt-4 w-full">
 			<ul
 				on:mouseleave={setActiveIndicator}
 				class="relative mx-auto flex w-fit rounded-full border-2 border-zinc-700 bg-zinc-900 p-1"
@@ -191,7 +191,7 @@
 		background-clip: text;
 		animation: gradient-shift 5s ease infinite;
 		filter: drop-shadow(0 0 30px rgba(29, 78, 216, 0.5));
-		letter-spacing: 2px;
+		letter-spacing: 5px;
 	}
 
 	@keyframes gradient-shift {
