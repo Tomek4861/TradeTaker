@@ -40,34 +40,6 @@ analytics  — with a responsive, mobile-friendly UI. Built on a modern Java/Spr
 - **Tests:** JUnit 5
 - **API & SDK:** Bybit Official Java SDK, TradingView Charts
 
-## Screenshots
-
-### Open Positions
-
-<img src="docs/screenshots/positions.png" alt="Open Positions" width="500"/>
-
-### Trade Preview
-
-<img src="docs/screenshots/preview.png" alt="Trade Preview" width="450"/>
-
-### Pending Orders
-
-<img src="docs/screenshots/orders.png" alt="Orders" width="450"/>
-
-### PnL Calendar
-
-<img src="docs/screenshots/stats.png" alt="PnL Calendar" width="500"/>
-
-### Settings / Login
-
-<img src="docs/screenshots/settings.png" alt="Settings" width="500"/>
-<img src="docs/screenshots/login.png" alt="Login" width="500"/>
-
-### Mobile (Example)
-
-<img src="docs/screenshots/mobile-positions.png" alt="Positions – Mobile" width="250"/>
-
-
 ## Installation and Setup
 
 1. **Clone the repository**
@@ -131,10 +103,32 @@ Open `http://localhost:5173`
 
 </details>
 
-4. **Login & configure**
+## Screenshots
 
-    * Register/login.
-    * In **Settings**, add your **Bybit API key/secret** and set **risk %**.
+### Open Positions
+
+<img src="docs/screenshots/positions.png" alt="Open Positions" width="700"/>
+
+### Trade Preview
+
+<img src="docs/screenshots/preview.png" alt="Trade Preview" width="650"/>
+
+### Pending Orders
+
+<img src="docs/screenshots/orders.png" alt="Orders" width="570"/>
+
+### PnL Calendar
+
+<img src="docs/screenshots/stats.png" alt="PnL Calendar" width="500"/>
+
+### Settings / Login
+
+<img src="docs/screenshots/settings.png" alt="Settings" width="500"/>
+<img src="docs/screenshots/login.png" alt="Login" width="500"/>
+
+### Mobile (Example)
+
+<img src="docs/screenshots/mobile-positions.png" alt="Positions – Mobile" width="280"/>
 
 ## Future Improvements
 
