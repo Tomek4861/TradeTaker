@@ -42,31 +42,30 @@ analytics  — with a responsive, mobile-friendly UI. Built on a modern Java/Spr
 
 ## Screenshots
 
-> Replace the images below with your own.
+### Open Positions
+
+<img src="docs/screenshots/positions.png" alt="Open Positions" width="500"/>
 
 ### Trade Preview
 
-![Trade Preview](docs/screenshots/preview.png)
+<img src="docs/screenshots/preview.png" alt="Trade Preview" width="450"/>
 
-### Open Positions
+### Pending Orders
 
-![Open Positions](docs/screenshots/positions.png)
-
-### Orders
-
-![Orders](docs/screenshots/orders.png)
+<img src="docs/screenshots/orders.png" alt="Orders" width="450"/>
 
 ### PnL Calendar
 
-![PnL Calendar](docs/screenshots/calendar.png)
+<img src="docs/screenshots/stats.png" alt="PnL Calendar" width="500"/>
 
 ### Settings / Login
 
-![Settings](docs/screenshots/settings.png)
-![Login](docs/screenshots/login.png)
+<img src="docs/screenshots/settings.png" alt="Settings" width="500"/>
+<img src="docs/screenshots/login.png" alt="Login" width="500"/>
 
-### Mobile (Examples)
-![Positions – Mobile](docs/screenshots/mobile-positions.png)
+### Mobile (Example)
+
+<img src="docs/screenshots/mobile-positions.png" alt="Positions – Mobile" width="250"/>
 
 
 ## Installation and Setup
