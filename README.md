@@ -6,8 +6,7 @@ analytics  — with a responsive, mobile-friendly UI. Built on a modern Java/Spr
 
 **Demo video:** 
 
-https://github.com/user-attachments/assets/8ac8cc07-2ac3-4e8b-ba74-1047e2f6df0c
-
+https://github.com/user-attachments/assets/215777f0-fb6f-4ff6-b54b-96a7059024d2
 
 
 ## Key Features
