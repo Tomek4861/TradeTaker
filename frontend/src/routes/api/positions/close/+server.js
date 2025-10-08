@@ -4,5 +4,3 @@ import { proxyPost } from '$lib/apiProxy.js';
 export async function POST(event) {
 	return proxyPost(event, '/positions/close');
 }
-
-//TODO: Tutaj inny response

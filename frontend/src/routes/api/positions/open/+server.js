@@ -8,6 +8,3 @@ export async function POST(event) {
 export async function GET(event) {
 	return proxyGet(event, targetPath);
 }
-
-
-//TODO: Inny response
