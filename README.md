@@ -60,7 +60,7 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name_goes_h
 spring.datasource.username=postgres
 spring.datasource.password=your_password
 # --- JWT ---
-# 32-byte key in hex or Base64 your own
+# 32-byte key in hex or Base64
 security.jwt.secret-key=<your-dev-jwt-secret>
 security.jwt.expiration-time=7200000
 # --- Logging (Feel free to disable this logging) ---

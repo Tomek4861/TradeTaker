@@ -6,7 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { apiFetch } from '$lib/api.js';
 
-	const fetchIntervalMs = 10000;
+	const fetchIntervalMs = 5000;
 
 	let intervalId;
 	let positions = [];

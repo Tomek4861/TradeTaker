@@ -69,7 +69,7 @@
 	}
 
 
-	const marketPriceFetchDelay = 3000;
+	const marketPriceFetchDelay = 2000;
 
 	onMount(async () => {
 		items = await loadTradableTickers();
