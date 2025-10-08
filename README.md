@@ -4,7 +4,10 @@
 It automates position sizing, calculates risk/reward, and provides performance
 analytics  — with a responsive, mobile-friendly UI. Built on a modern Java/Spring backend and a reactive SvelteKit frontend.
 
-**Demo video:** *[Here Video]*
+**Demo video:** 
+
+https://github.com/user-attachments/assets/215777f0-fb6f-4ff6-b54b-96a7059024d2
+
 
 ## Key Features
 
