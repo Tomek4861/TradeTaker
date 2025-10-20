@@ -8,28 +8,30 @@ import com.tomek4861.tradetaker.entity.User;
 import com.tomek4861.tradetaker.service.AuthenticationService;
 import com.tomek4861.tradetaker.service.JwtService;
 import com.tomek4861.tradetaker.service.TradingOrchestrationService;
-import com.tomek4861.tradetaker.service.UserDetailsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {
-        // keep oauth2 success handler happy
-        "app.oauth2.redirect-uri=http://localhost/cb"
-})
+@SpringBootTest()
 @AutoConfigureMockMvc
 class SecurityConfigIntegrationTest {
 
@@ -38,13 +40,41 @@ class SecurityConfigIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @TestConfiguration
+    static class Configuration {
+
+        @Bean
+        public AuthenticationService authenticationService() {
+            return Mockito.mock(AuthenticationService.class);
+        }
+
+        @Bean
+        public JwtService jwtService() {
+            return Mockito.mock(JwtService.class);
+
+        }
+
+        @Bean
+        public UserDetailsService userDetailsService() {
+            return Mockito.mock(UserDetailsService.class);
+        }
+
+        @Bean
+        public TradingOrchestrationService tradingOrchestrationService() {
+            return Mockito.mock(TradingOrchestrationService.class);
+        }
+    }
+
+    @Autowired
     private AuthenticationService authenticationService;
-    @MockBean
+
+    @Autowired
     private JwtService jwtService;
-    @MockBean
-    private UserDetailsServiceImpl userDetailsService;
-    @MockBean
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
     private TradingOrchestrationService tradingOrchestrationService;
 
     private static String toJson(Object o, ObjectMapper mapper) {
@@ -62,7 +92,7 @@ class SecurityConfigIntegrationTest {
                 .thenReturn(new CurrentOpenPositionsResponse());
     }
 
-    // 1) public endpoints don't require JWT
+    // 1) security_publicEndpoints_permitAll
     @Test
     void security_publicEndpoints_permitAll() throws Exception {
         // /auth/login -> 200 with mocked service
@@ -93,7 +123,7 @@ class SecurityConfigIntegrationTest {
                         .content(toJson(reg, objectMapper)))
                 .andExpect(status().isOk());
 
-        // /oauth2/** -> should NOT be 401/403 (can be 404)
+        // /oauth2/-> should not be 401/403
         var res = mvc.perform(get("/oauth2/authorization/google"))
                 .andReturn()
                 .getResponse()
@@ -117,13 +147,40 @@ class SecurityConfigIntegrationTest {
     void security_protectedEndpoint_withValidJWT_returns200() throws Exception {
         // fake jwt flow
         when(jwtService.extractUsername("good.token")).thenReturn("alice");
-        UserDetails u = org.springframework.security.core.userdetails.User
-                .withUsername("alice").password("pw").build();
-        when(userDetailsService.loadUserByUsername("alice")).thenReturn(u);
-        when(jwtService.isTokenValid("good.token", u)).thenReturn(true);
+        User principal = new User();
+        principal.setUsername("alice");
+        principal.setPassword("pw");
+        when(userDetailsService.loadUserByUsername("alice")).thenReturn(principal);
+        when(jwtService.isTokenValid("good.token", principal)).thenReturn(true);
 
         mvc.perform(get("/positions/open")
                         .header("Authorization", "Bearer good.token"))
                 .andExpect(status().isOk());
     }
+
+    // 4) security_protectedEndpoint_withJWT_userNotFound_returns401_withStandardBody
+    @Test
+    void security_protectedEndpoint_withJWT_userNotFound_returns401_withStandardBody() throws Exception {
+        when(jwtService.extractUsername(anyString())).thenReturn("ghost");
+        when(jwtService.isTokenValid(anyString(), any(UserDetails.class))).thenReturn(true);
+        when(userDetailsService.loadUserByUsername(anyString())).thenThrow(new UsernameNotFoundException(""));
+
+        User principal = new User();
+        principal.setUsername("alice");
+        principal.setPassword("pw");
+        String token = jwtService.generateToken(principal);
+
+        mvc.perform(get("/positions/open")
+                        .header("Authorization", "Bearer " + token)
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error", containsString("Authentication required")))
+        ;
+
+
+    }
+
+
 }

@@ -14,6 +14,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class PositionCalculatorTest {
 
@@ -45,7 +46,7 @@ class PositionCalculatorTest {
     @Test
     void calculate_happyPath_withTP_returnsAllFields() {
         // balance=1000, risk=1% -> riskAmount(final loss)=10
-        // entry=100, SL=95 (5%), size≈2.000 after qtyStep=0.001
+        // entry=100, SL=95 (5%), size~2.000 after qtyStep=0.001
         // TPs: 110(50%), 120(50%) -> WAP=115 -> profit=(115-100)*2=30
         // lev=((1-0.003)/0.05) UP(2)=19.94 *0.9=17.946; margin=200/17.946 (scale=8)=11.14454475
         var tps = List.of(
@@ -61,7 +62,8 @@ class PositionCalculatorTest {
 
         // value & size
         assertThat(r.positionValue()).isEqualByComparingTo("200");
-        assertThat(r.positionSize()).isEqualByComparingTo("2.000"); // after step trim
+        // after step trim: position size ~ 2.000 (qtyStep=0.001)
+        assertThat(r.positionSize()).isEqualByComparingTo("2.000");
 
         // leverage & margin
         assertThat(r.leverage()).isEqualByComparingTo("17.946");
@@ -106,7 +108,7 @@ class PositionCalculatorTest {
     // 5) Leverage capped at maxLeverage.
     @Test
     void calculate_leverageCappedByMaxLeverage() {
-        // entry=100, SL=99 => ≈1% -> raw lev≈89.73 -> capped to 50
+        // entry=100, SL=99 => ~1% -> raw lev~89.73 -> capped to 50
         var p = createCalculationParameters("1000", "1", "100", "99", null, "50", "0.001");
         CalculationResult r = calculator.calculate(p);
 
@@ -126,17 +128,29 @@ class PositionCalculatorTest {
     // 7) Size rounded down to qtyStep.
     @Test
     void calculate_qtyRoundedDownToQtyStep() {
-        // craft raw size≈3.333..., step=0.2 -> expect 3.2
+        // craft raw size~3.333..., step=0.2 -> expect 3.2
         var p = createCalculationParameters("1000", "1", "123", "120", null, "100", "0.2");
         CalculationResult r = calculator.calculate(p);
 
         assertThat(r.positionSize()).isEqualByComparingTo("3.2");
 
-        // sanity: multiple of step
+        // sanity: check if positionSize is multiplication of step
         BigDecimal step = new BigDecimal("0.2");
         BigDecimal recomputed = r.positionSize()
                 .divide(step, 0, RoundingMode.DOWN)
                 .multiply(step);
         assertThat(recomputed).isEqualByComparingTo(r.positionSize());
+    }
+
+    // 8) SL distance very close to maintenance margin
+    @Test
+    void calculate_SLCloseToMaintenanceMargin() {
+        // entry=100, SL=99.69, balance = 1000, maintenaceRate = 0.3
+        var p = createCalculationParameters("1000", "1", "100", "99.69", null, "100", "0.001");
+        assertDoesNotThrow(() -> calculator.calculate(p));
+        CalculationResult r = calculator.calculate(p);
+        assertThat(r.leverage()).isEqualByComparingTo("100");
+
+
     }
 }

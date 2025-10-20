@@ -2,11 +2,11 @@ package com.tomek4861.tradetaker;
 
 import com.tomek4861.tradetaker.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -16,22 +16,9 @@ class JwtServiceTest {
 
     // helper: configure service with secret + expiration
     private JwtService createJwtService(long expMillis) {
-        JwtService s = new JwtService();
-        setField(s, "secretKey", JwtServiceTest.SECRET_B64);
-        setField(s, "jwtExpiration", expMillis);
-        return s;
+        return new JwtService(JwtServiceTest.SECRET_B64, expMillis);
     }
 
-    // helper: set private field via reflection
-    private static void setField(Object target, String name, Object value) {
-        try {
-            Field f = target.getClass().getDeclaredField(name);
-            f.setAccessible(true);
-            f.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     // stable 32-byte key -> Base64
     private static final String SECRET_B64 = Base64.getEncoder()
@@ -67,7 +54,7 @@ class JwtServiceTest {
     // 3) jwt_isTokenValid_falseWhenExpired
     @Test
     void jwt_isTokenValid_falseWhenExpired() {
-        // expired token (negative exp)
+        // expired token
         JwtService jwtExpired = createJwtService(-1_000);
         UserDetails u = user("carol");
         String expired = jwtExpired.generateToken(u);
@@ -93,5 +80,36 @@ class JwtServiceTest {
         assertThat(jwt.validateTokenQuickly("garbage.token.value")).isFalse();
         assertThat(jwt.validateTokenQuickly("")).isFalse();
         assertThat(jwt.validateTokenQuickly("abc")).isFalse();
+    }
+
+    // 5) jwt_isTokenValid_false_forWrongUser
+    @Test
+    void jwt_isTokenValid_false_forWrongUser() {
+        JwtService jwt = createJwtService(3600_000);
+
+        UserDetails user = user("carol");
+        UserDetails user2 = user("alice");
+
+        String token = jwt.generateToken(user);
+        assertThat(jwt.isTokenValid(token, user2)).isFalse();
+
+    }
+
+    @Test
+    void jwt_isTokenValid_falseForMalformedToken() {
+        JwtService jwt = createJwtService(3600_000);
+
+        UserDetails user = user("alice");
+
+        String token = jwt.generateToken(user);
+        String tokenMalformed = token.substring(0, 50) + "HEHE" + token.substring(50);
+        boolean valid;
+        try {
+            valid = jwt.isTokenValid(tokenMalformed, user);
+
+        } catch (SignatureException e) {
+            valid = false;
+        }
+        assertThat(valid).isFalse();
     }
 }

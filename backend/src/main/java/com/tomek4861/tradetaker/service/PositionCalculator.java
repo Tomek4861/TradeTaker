@@ -65,7 +65,6 @@ public class PositionCalculator {
 
     private BigDecimal calculateRawPositionSize(BigDecimal riskAmount, BigDecimal entry, BigDecimal slDistancePercentage) {
 
-
         // Total position value
         BigDecimal positionValue = riskAmount.divide(slDistancePercentage.divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP), 2, RoundingMode.HALF_UP);
 
