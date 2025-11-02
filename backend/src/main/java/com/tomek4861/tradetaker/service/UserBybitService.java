@@ -7,6 +7,7 @@ import com.bybit.api.client.domain.account.AccountType;
 import com.bybit.api.client.domain.account.request.AccountDataRequest;
 import com.bybit.api.client.domain.position.request.PositionDataRequest;
 import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
+import com.bybit.api.client.exception.BybitApiException;
 import com.bybit.api.client.restApi.BybitApiAccountRestClient;
 import com.bybit.api.client.restApi.BybitApiPositionRestClient;
 import com.bybit.api.client.restApi.BybitApiTradeRestClient;
@@ -20,6 +21,7 @@ import com.tomek4861.tradetaker.dto.positions.cancel.CancelPendingOrderRequest;
 import com.tomek4861.tradetaker.dto.positions.close.PositionCloseDTO;
 import com.tomek4861.tradetaker.dto.positions.current.CurrentOpenOrdersResponse;
 import com.tomek4861.tradetaker.dto.positions.current.CurrentOpenPositionsResponse;
+import com.tomek4861.tradetaker.exception.BybitIPBindingException;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +34,28 @@ public class UserBybitService {
     private final BybitApiClientFactory clientFactory;
     private final ObjectMapper objectMapper;
 
+    private static final String IP_NOT_BOUND_ERROR = "Unmatched IP, please check your API key's bound IP addresses.";
+
+
     public UserBybitService(String apiKey, String secretKey, ObjectMapper objectMapper) {
         this.clientFactory = BybitApiClientFactory.newInstance(apiKey, secretKey);
         this.objectMapper = objectMapper;
+    }
+
+    private void handleBybitApiResponse(GenericResponse<?> response) {
+
+        if (response == null || response.getResult() == null) {
+            throw new BybitApiException("Bybit Api returned null response");
+        }
+
+        String errorMessage = response.getRetMsg();
+
+        if (response.getRetCode() != 0) {
+            if (errorMessage != null && errorMessage.contains(IP_NOT_BOUND_ERROR))
+                throw new BybitIPBindingException(IP_NOT_BOUND_ERROR);
+
+            throw new BybitApiException(errorMessage);
+        }
     }
 
     public Optional<BigDecimal> getAccountBalance() {
@@ -45,10 +66,15 @@ public class UserBybitService {
                 .build();
 
         Object rawResp = accountClient.getWalletBalance(request);
+
+
         TypeReference<GenericResponse<WalletBalanceDTO.Result>> typeRef = new TypeReference<>() {
         };
         GenericResponse<WalletBalanceDTO.Result> response = objectMapper.convertValue(rawResp, typeRef);
-        if (response != null && response.getResult() != null && response.getResult().getList() != null && !response.getResult().getList().isEmpty()) {
+
+        handleBybitApiResponse(response);
+
+        if (response.getResult().getList() != null && !response.getResult().getList().isEmpty()) {
             String totalEquityStr = response.getResult().getList().getFirst().getTotalEquity();
             if (totalEquityStr != null && !totalEquityStr.isBlank()) {
                 return Optional.of(new BigDecimal(totalEquityStr));
@@ -69,11 +95,13 @@ public class UserBybitService {
         TypeReference<GenericResponse<CurrentOpenPositionsResponse>> typeRef = new TypeReference<>() {
         };
         GenericResponse<CurrentOpenPositionsResponse> response = objectMapper.convertValue(positionInfoRawResp, typeRef);
+
+        handleBybitApiResponse(response);
+
         CurrentOpenPositionsResponse result = response.getResult();
         result.getPositionDTOList().forEach(
                 position -> position.setId(generatePositionID(position)
                 )
-
         );
         return result;
 
@@ -91,8 +119,9 @@ public class UserBybitService {
 
         TypeReference<GenericResponse<CurrentOpenOrdersResponse>> typeRef = new TypeReference<>() {
         };
-
         GenericResponse<CurrentOpenOrdersResponse> response = objectMapper.convertValue(openOrdersRawResp, typeRef);
+
+        handleBybitApiResponse(response);
 
         return response.getResult();
     }
@@ -118,13 +147,15 @@ public class UserBybitService {
             };
 
             GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
-            System.out.println(apiResponse);
-            if (apiResponse.getRetCode() == 0) {
-                return StandardResponse.success();
-            } else {
-                return StandardResponse.error(apiResponse.getRetMsg());
-            }
 
+            handleBybitApiResponse(apiResponse);
+
+            System.out.println(apiResponse);
+            return StandardResponse.success();
+
+
+        } catch (BybitIPBindingException | BybitApiException e) {
+            throw e;
         } catch (Exception e) {
             return StandardResponse.error("Failed to create order: " + e.getMessage());
         }
@@ -146,11 +177,10 @@ public class UserBybitService {
         TypeReference<GenericResponse<Object>> typeRef = new TypeReference<>() {
         };
         GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
-        if (apiResponse.getRetCode() == 0) {
-            return StandardResponse.success();
-        } else {
-            return StandardResponse.error(apiResponse.getRetMsg());
-        }
+
+        handleBybitApiResponse(apiResponse);
+
+        return StandardResponse.success();
 
     }
 
@@ -166,8 +196,10 @@ public class UserBybitService {
         TypeReference<GenericResponse<PositionCloseDTO>> typeRef = new TypeReference<>() {
         };
         GenericResponse<PositionCloseDTO> response = objectMapper.convertValue(rawResponse, typeRef);
-        if (response != null && response.getRetCode() == 0 && response.getResult() != null &&
-                response.getResult().getPnlEntryList() != null && !response.getResult().getPnlEntryList().isEmpty()) {
+
+        handleBybitApiResponse(response);
+
+        if (response.getResult().getPnlEntryList() != null && !response.getResult().getPnlEntryList().isEmpty()) {
 
             PositionCloseDTO.ClosedPnlEntry finalResponse = response.getResult().getPnlEntryList().getFirst();
             return Optional.of(finalResponse);
@@ -192,12 +224,14 @@ public class UserBybitService {
             };
             GenericResponse<Object> apiResponse = objectMapper.convertValue(rawApiResponse, typeRef);
 
-            if (apiResponse.getRetCode() == 0) {
-                return StandardResponse.success();
-            } else {
-                return StandardResponse.error(apiResponse.getRetMsg());
-            }
+            handleBybitApiResponse(apiResponse);
 
+
+            return StandardResponse.success();
+
+
+        } catch (BybitIPBindingException | BybitApiException e) {
+            throw e;
         } catch (Exception e) {
             return StandardResponse.error("Failed to cancel order: " + e.getMessage());
         }

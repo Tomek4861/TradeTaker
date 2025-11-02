@@ -135,11 +135,18 @@ public class ApiExceptionHandler {
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "Bybit API error");
     }
 
+    @ExceptionHandler(BybitIPBindingException.class)
+    public ResponseEntity<StandardResponse<Void>> handleBybitIPNotBoundException(BybitIPBindingException ex){
+        logger.warn("Bybit unbound IP", ex);
+        return body(HttpStatus.BAD_REQUEST, "Unmatched IP, please check your API key's bound IP.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandardResponse<Void>> handleOther(Exception ex) {
         logger.error("Unhandled exception", ex);
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
     }
+
 
 
 }
